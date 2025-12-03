@@ -83,13 +83,17 @@ export default function Header() {
             navItems.map((item) => (
               <div
                 key={item.title}
-                className="group static" // 'static' is needed for the full-width dropdown
+                className="group static"
                 onMouseEnter={() => setOpenMenu(item.title)}
                 onMouseLeave={() => setOpenMenu(null)}
               >
-                <button className={`py-4 text-sm font-semibold tracking-wide transition-colors border-b-2 border-transparent hover:text-[#66A3A3] ${openMenu === item.title ? 'text-[#66A3A3] border-[#66A3A3]' : 'text-gray-700'}`}>
+                {/* --- LEVEL 1 LINK (Main Menu) --- */}
+                <Link 
+                  href={`/category/${item.slug}`} 
+                  className={`py-4 text-sm font-semibold tracking-wide transition-colors border-b-2 border-transparent hover:text-[#66A3A3] inline-block ${openMenu === item.title ? 'text-[#66A3A3] border-[#66A3A3]' : 'text-gray-700'}`}
+                >
                   {item.title}
-                </button>
+                </Link>
 
                 {/* Mega Menu Dropdown */}
                 {openMenu === item.title && item.submenu && (
@@ -97,7 +101,7 @@ export default function Header() {
                     <div className="container mx-auto px-6 py-10">
                       <div className="grid grid-cols-12 gap-8">
                         
-                        {/* LEFT COLUMN: Popular (Fixed width: 2 cols) */}
+                        {/* LEFT COLUMN: Popular */}
                         <div className="col-span-2 border-r border-gray-100 pr-6">
                           <h4 className="font-bold text-[#66A3A3] mb-6 text-xs uppercase tracking-wider">
                             Popular
@@ -123,15 +127,28 @@ export default function Header() {
                           </ul>
                         </div>
 
-                        {/* MIDDLE COLUMN: Dynamic Links (Flexible width: 7 cols) */}
+                        {/* MIDDLE COLUMN: Dynamic Links */}
                         <div className="col-span-7 px-4">
-                          <div className="grid grid-cols-3 gap-x-8 gap-y-10">
+                          
+                          {/* FIX: Dynamic Grid Columns 
+                              If we have 4+ groups (like Gifts), use 4 columns.
+                              Otherwise use 3 columns (like Birthday).
+                          */}
+                          <div className={`grid gap-x-6 gap-y-10 ${item.submenu.length >= 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                            
                             {item.submenu.map((group) => (
                               <div key={group.heading} className="space-y-4">
-                                <h4 className="font-bold text-gray-900 text-sm border-b border-gray-100 pb-2 mb-3">
+                                
+                                {/* --- LEVEL 2 LINK (Headings like 'For Him') --- */}
+                                <Link 
+                                  href={`/category/${group.slug}`}
+                                  className="block font-bold text-gray-900 text-sm border-b border-gray-100 pb-2 mb-3 hover:text-[#66A3A3] transition-colors line-clamp-1"
+                                >
                                   {group.heading}
-                                </h4>
+                                </Link>
+
                                 <ul className="space-y-2.5">
+                                  {/* --- LEVEL 3 LINKS (Items like 'Brother') --- */}
                                   {Array.isArray(group.links) && group.links.map((linkName, idx) => {
                                     const correctSlug = group.slugs && group.slugs[idx] ? group.slugs[idx] : '#';
                                     return (
@@ -141,7 +158,7 @@ export default function Header() {
                                           className="text-[13px] text-gray-500 hover:text-[#66A3A3] hover:translate-x-1 transition-all flex items-center gap-2"
                                         >
                                            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                          {linkName}
+                                           <span className="line-clamp-1">{linkName}</span>
                                         </Link>
                                       </li>
                                     );
@@ -152,7 +169,7 @@ export default function Header() {
                           </div>
                         </div>
 
-                        {/* RIGHT COLUMN: Promo Images (Fixed width: 3 cols) */}
+                        {/* RIGHT COLUMN: Promo Images */}
                         <div className="col-span-3 pl-6 border-l border-gray-100">
                           <div className="space-y-6">
                             {item.images?.map((imgGroup, i) => (
@@ -169,6 +186,7 @@ export default function Header() {
                                             src={img.src}
                                             alt={img.title}
                                             fill
+                                            unoptimized={true}
                                             className="object-contain hover:scale-105 transition-transform"
                                           />
                                         </div>
@@ -186,6 +204,7 @@ export default function Header() {
                                           src={imgGroup.src}
                                           alt={imgGroup.title}
                                           fill
+                                          unoptimized={true}
                                           className="object-contain hover:scale-105 transition-transform"
                                         />
                                     </div>

@@ -1,11 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+// 1. IMPORT YOUR COMPONENT
+import DynamicThumbnail from "@/components/DynamicThumbnail"; 
 
 // Function to fetch data from your Laravel API
 async function getCategoryProducts(slug) {
   try {
-    // Make sure this URL matches your Laravel API address
     const res = await fetch(`http://127.0.0.1:8000/api/products/category/${slug}`, {
       cache: "no-store", 
     });
@@ -69,44 +69,56 @@ export default async function CategoryPage({ params }) {
       <div className="container mx-auto px-4">
         {productList.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {productList.map((product) => (
-              <Link 
-                href={`/editor/${product.sku}`} 
-                key={product.id}
-                className="group bg-white rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#9DCDCD]"
-              >
-                {/* Image Container */}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-4">
-                  
-                  {/* FIX: Added unoptimized prop to bypass config check */}
-                  <Image
-                    src={product.thumbnail_url || '/placeholder.png'} 
-                    alt={product.title}
-                    fill
-                    unoptimized={true} 
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  
-                  {/* Quick Action Button */}
-                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                    <span className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg">
-                      Personalize
-                    </span>
-                  </div>
-                </div>
+            {productList.map((product) => {
+              
+              // 2. PREPARE PROPS FOR DYNAMIC THUMBNAIL
+              const frontSlide = product.design_data?.slides?.front;
+              
+              const thumbnailProps = {
+                  id: product.id,
+                  sku: product.sku,
+                  title: product.title,
+                  // Use front background if available, else thumbnail, else placeholder
+                  thumbnail_url: frontSlide?.background_url || product.thumbnail_url || "/placeholder.png",
+                  canvas_settings: product.canvas_settings,
+                  // PASS THE TEXT ZONES HERE
+                  preview_zones: frontSlide?.dynamic_zones || [] 
+              };
 
-                {/* Details */}
-                <div className="text-center">
-                  <h3 className="font-bold text-lg text-gray-800 group-hover:text-[#66A3A3] transition-colors line-clamp-1">
-                    {product.title}
-                  </h3>
-                  <p className="text-gray-500 mt-1">From £{product.price}</p>
-                </div>
-              </Link>
-            ))}
+              return (
+                <Link 
+                  href={`/product/${product.sku}`} 
+                  key={product.id}
+                  className="group bg-white rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#9DCDCD]"
+                >
+                  {/* Image Container */}
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-4">
+                    
+                    {/* 3. REPLACE STATIC IMAGE WITH DYNAMIC THUMBNAIL */}
+                    <div className="w-full h-full group-hover:scale-105 transition-transform duration-500">
+                       <DynamicThumbnail product={thumbnailProps} />
+                    </div>
+                    
+                    {/* Quick Action Button */}
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 pointer-events-none">
+                      <span className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg">
+                        Personalize
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="text-center">
+                    <h3 className="font-bold text-lg text-gray-800 group-hover:text-[#66A3A3] transition-colors line-clamp-1">
+                      {product.title}
+                    </h3>
+                    <p className="text-gray-500 mt-1">From £{product.price}</p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         ) : (
-          // Empty State
           <div className="flex flex-col items-center justify-center py-20 text-center">
              <h3 className="text-xl font-bold text-gray-400 mt-4">No products found here yet.</h3>
              <p className="text-gray-400">We are adding new designs to {category.name} soon!</p>
