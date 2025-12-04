@@ -224,7 +224,7 @@ export default function EditorPage() {
 
     // Use singular 'product' endpoint to match your existing API
     const timer = setTimeout(() => {
-        fetch(`http://127.0.0.1:8000/api/product/${params.sku}`)
+        fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
         .then((res) => res.json())
         .then((data) => {
             setProduct(data);

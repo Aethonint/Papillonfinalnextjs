@@ -21,7 +21,7 @@ export default function Header() {
   useEffect(() => {
     async function fetchMenu() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/header-menu");
+        const res = await fetch("https://papillondashboard.devshop.site/api/header-menu");
         if (!res.ok) throw new Error("Failed to fetch menu");
         const data = await res.json();
         setNavItems(data);
