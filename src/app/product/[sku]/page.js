@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import DynamicThumbnail from "@/components/DynamicThumbnail";
-import { useCart } from "@/context/CartContext"; // Ensure path matches your project
+import { useCart } from "@/context/CartContext"; 
 
 export default function ProductDetailsPage() {
   const params = useParams();
@@ -51,16 +51,16 @@ export default function ProductDetailsPage() {
     const cartItem = {
       product_id: product.id,
       sku: product.sku,
-      name: product.title, // Standardizing to 'name' for CartPage
+      name: product.title, 
       price: parseFloat(product.price),
       qty: quantity,
       image: itemImage,
-      personalization_id: null, // No custom ID needed
-      custom_data: null, // No personalization data
+      personalization_id: null, 
+      custom_data: null, 
     };
 
     addToCart(cartItem);
-    alert("Added to cart!"); // Optional: Replace with a toast notification
+    alert("Added to cart!"); 
   };
 
   if (loading) {
@@ -80,15 +80,22 @@ export default function ProductDetailsPage() {
     );
   }
 
-  // Props for Dynamic Thumbnail
+  // --- PREPARE THUMBNAIL PROPS ---
   const frontSlide = product.design_data?.slides?.front;
+  
+  // ✅ FIX: Merge Static + Dynamic Zones so ALL text shows up
+  const staticZones = frontSlide?.static_zones || [];
+  const dynamicZones = frontSlide?.dynamic_zones || [];
+  const allZones = [...staticZones, ...dynamicZones];
+
   const thumbnailProps = {
       id: product.id,
       sku: product.sku,
       title: product.title,
       thumbnail_url: frontSlide?.background_url || product.thumbnail_url || "/placeholder.png",
       canvas_settings: product.canvas_settings,
-      preview_zones: frontSlide?.dynamic_zones || [] 
+      // Pass merged zones
+      preview_zones: allZones 
   };
 
   return (
@@ -129,6 +136,7 @@ export default function ProductDetailsPage() {
                     activeView === "front" ? "border-[#66A3A3] ring-2 ring-[#66A3A3]/20" : "border-transparent opacity-70 hover:opacity-100"
                   }`}
                 >
+                   {/* Mini Thumbnail */}
                    <DynamicThumbnail product={thumbnailProps} />
                    <span className="absolute bottom-0 left-0 w-full bg-black/50 text-white text-[10px] py-1 text-center font-bold">Front</span>
                 </button>

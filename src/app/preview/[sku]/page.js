@@ -3,16 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ReadOnlyCard from "@/components/ReadOnlyCard";
-import { useCart } from "@/context/CartContext"; // ✅ Import
-
+import { useCart } from "@/context/CartContext"; 
 
 export default function PreviewPage() {
-  const { addToCart } = useCart(); // ✅ Get addToCart from context
+  const { addToCart } = useCart(); 
   const params = useParams();
   const router = useRouter();
   
-  // REMOVED: useCart hook
-
   const [product, setProduct] = useState(null);
   const [userInputs, setUserInputs] = useState({});
   const [userStyles, setUserStyles] = useState({});
@@ -24,13 +21,13 @@ export default function PreviewPage() {
   useEffect(() => {
     if (!params.sku) return;
     
-    // Fetch product details from API
+    // Fetch product details
     fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
       .then((res) => res.json())
       .then((data) => setProduct(data))
       .catch(err => console.error("Failed to load product", err));
 
-    // Load the draft saved from the editor
+    // Load draft
     const savedDraft = localStorage.getItem(`draft_${params.sku}`);
     if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
@@ -50,47 +47,37 @@ export default function PreviewPage() {
   const handleAddToBasket = () => {
       if (!product) return;
 
-      // 1. Calculate Price (Logic kept for future use)
       const basePrice = parseFloat(product.price || "0");
       const envelopePrice = envelope === 'red' ? 0.50 : 0.00;
       const finalPrice = basePrice + envelopePrice;
 
-      // 2. Get Thumbnail Image
       const frontSlide = product.design_data?.slides?.front;
       const thumbUrl = frontSlide?.background_url || product.thumbnail_url || '/placeholder.png';
 
-      // 3. Construct the Item Object (Ready to send to API or Context later)
-  const cartItem = {
-    id: Date.now().toString(),
-    product_id: product.id,
-    personalization_id: Date.now().toString(), // ✅ unique per personalization
-    sku: product.sku,
-    name: product.title,
-    price: finalPrice,
-    image: thumbUrl,
-    qty: 1,
-    custom_data: {     
-        inputs: userInputs,
-        styles: userStyles,
-        envelope: envelope
-    }
-};
+      const cartItem = {
+        id: Date.now().toString(),
+        product_id: product.id,
+        personalization_id: Date.now().toString(),
+        sku: product.sku,
+        name: product.title,
+        price: finalPrice,
+        image: thumbUrl,
+        qty: 1,
+        custom_data: {     
+            inputs: userInputs,
+            styles: userStyles,
+            envelope: envelope
+        }
+      };
 
-
-  // 1. Add item to CartContext
       addToCart(cartItem); 
-
-      // 2. Clear Draft
       localStorage.removeItem(`draft_${params.sku}`);
-
-      // 3. Redirect to cart
       router.push('/cart');
   };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 flex flex-col items-center">
       
-      {/* TOP BAR */}
       <div className="w-full max-w-6xl flex justify-between items-center mb-8">
          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Review Your Card</h1>
          <button onClick={() => router.back()} className="text-blue-600 hover:underline">← Go Back & Edit</button>
@@ -98,7 +85,7 @@ export default function PreviewPage() {
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-12">
           
-          {/* LEFT COLUMN: THE INTERACTIVE CARD */}
+          {/* INTERACTIVE PREVIEW */}
           <div className="lg:col-span-2">
               <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8 flex flex-col items-center">
                   
@@ -119,7 +106,7 @@ export default function PreviewPage() {
               </div>
           </div>
 
-          {/* RIGHT COLUMN: APPROVAL & UPSELLS */}
+          {/* RIGHT COLUMN */}
           <div className="space-y-6">
               
               <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
@@ -162,7 +149,6 @@ export default function PreviewPage() {
                   </div>
               </div>
 
-              {/* 4. Updated Button */}
               <button 
                   disabled={!canCheckout}
                   onClick={handleAddToBasket}

@@ -1,34 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams , useRouter } from "next/navigation";
 import Link from "next/link";
-
-// --- TYPES ---
-// (In a real TS project, these would be in a separate types file, but valid here for JS too)
-/*
-interface Zone {
-  id: number | string;
-  type: "text" | "image" | "emoji";
-  contentType: "dynamic" | "static";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  text?: string;
-  fontSize?: number;
-  fontFamily?: string;
-  fontWeight?: string;
-  color?: string;
-  backgroundColor?: string;
-  textAlign?: "left" | "center" | "right";
-  maxChars?: number;
-  emoji?: string;
-  emojiSize?: number;
-}
-...
-*/
 
 // --- CONSTANTS ---
 const HANDWRITING_FONTS = [
@@ -57,50 +31,77 @@ const ProtectedImage = ({ url }) => {
   );
 };
 
-// --- 2. TEXT ZONE (FIXED FOR FULL HEIGHT & NO SHRINK) ---
+// --- 2. TEXT ZONE (UPDATED: HANDLES STATIC & DYNAMIC) ---
 const AutoFitTextZone = ({ 
     zone, value, onChange, onFocus, userStyle 
 }) => {
   const textRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
 
+  // 🟢 CHECK: Is this zone Static (Read-Only) or Dynamic (Editable)?
+  const isStatic = zone.contentType === 'static';
+
   // LOGIC: If height > 150px, treat as Message Body (Full Height). Else Title (Auto Fit).
   const isMessageBody = zone.height > 150;
 
-  // Use Admin Font Size (Fixed) or User Override
-  const activeFont = userStyle?.fontFamily || (zone.fontFamily ? zone.fontFamily.replace(/['"]/g, "").split(",")[0] : "Arial");
-  const activeColor = userStyle?.color || zone.color || "#000";
+  // 🎨 STYLE: Use User Override (if dynamic) OR Admin Default
+  const activeFont = (!isStatic && userStyle?.fontFamily) || (zone.fontFamily ? zone.fontFamily.replace(/['"]/g, "").split(",")[0] : "Arial");
+  const activeColor = (!isStatic && userStyle?.color) || zone.color || "#000";
   const fontSize = zone.fontSize || 32;
 
-  // Horizontal Alignment (Left for body, Center for titles usually)
+  // Horizontal Alignment
   const textAlign = zone.textAlign || (isMessageBody ? 'left' : 'center');
 
+  // --- RENDER STATIC ZONE (Read Only) ---
+  if (isStatic) {
+      return (
+        <div
+            style={{
+                position: "absolute", left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.width}px`, height: `${zone.height}px`,
+                transform: `rotate(${zone.rotation}deg)`, zIndex: 20, 
+                display: 'flex', flexDirection: 'column', 
+                justifyContent: isMessageBody ? 'flex-start' : 'center',
+                padding: isMessageBody ? '15px' : '0px',
+                pointerEvents: 'none', // 🔒 Vital: user cannot click/interact
+            }}
+        >
+            <span style={{
+                fontFamily: activeFont,
+                fontSize: `${fontSize}px`,
+                fontWeight: zone.fontWeight || "normal",
+                color: activeColor,
+                textAlign: textAlign,
+                lineHeight: 1.3,
+                whiteSpace: 'pre-wrap',
+                width: '100%'
+            }}>
+                {/* Show Admin Text directly */}
+                {zone.text || ""}
+            </span>
+        </div>
+      );
+  }
+
+  // --- RENDER DYNAMIC ZONE (Editable) ---
   return (
     <div
       style={{
         position: "absolute", left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.width}px`, height: `${zone.height}px`,
         transform: `rotate(${zone.rotation}deg)`, zIndex: 20,
         backgroundColor: zone.backgroundColor && zone.backgroundColor !== "transparent" ? zone.backgroundColor : "rgba(255, 255, 255, 0.01)", 
-        
-        // FLEXBOX LAYOUT
-        display: 'flex', 
-        flexDirection: 'column', 
-        // If Body: Top Align. If Title: Center Align.
-        justifyContent: isMessageBody ? 'flex-start' : 'center', 
-        
-        // Add padding so text doesn't hit edges
+        display: 'flex', flexDirection: 'column', justifyContent: isMessageBody ? 'flex-start' : 'center', 
         padding: isMessageBody ? '15px' : '0px',
-        overflow: 'visible' // Allow badges to show outside       
+        overflow: 'visible'     
       }}
       className={`group cursor-text transition-all duration-200 ${isFocused ? "border-2 border-blue-500 ring-4 ring-blue-500/10" : "border-2 border-dashed border-blue-300/60 hover:border-blue-500"}`}
       onClick={() => { textRef.current?.focus(); }}
     >
-      {/* "T" INDICATOR (Top Left) */}
+      {/* "T" INDICATOR */}
       <div className={`absolute -top-3 -left-3 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm z-30 pointer-events-none transition-opacity duration-200 ${isFocused || value.length > 0 ? 'opacity-0' : 'opacity-100'}`}>
         T
       </div>
 
-      {/* CHARACTER COUNTER (Top Right - Always Visible when focused) */}
+      {/* CHARACTER COUNTER */}
       {isFocused && zone.maxChars && (
           <div className="absolute -top-6 right-0 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded shadow-sm z-30 pointer-events-none">
              {value.length} / {zone.maxChars}
@@ -110,31 +111,22 @@ const AutoFitTextZone = ({
       <textarea
         ref={textRef} 
         value={value} 
-        
-        // If message body, occupy full height. If title, 1 row.
         rows={isMessageBody ? 10 : 1} 
-        
         onFocus={() => { setIsFocused(true); onFocus(); }} 
         onBlur={() => setIsFocused(false)}
         spellCheck={false}
         onChange={(e) => { if (zone.maxChars && e.target.value.length > zone.maxChars) return; onChange(e.target.value); }}
         placeholder={zone.text || "Click to type"}
-        
         className="resize-none outline-none bg-transparent w-full border-none p-0 m-0"
-        
         style={{
           fontFamily: activeFont, 
-          fontSize: `${fontSize}px`, // Fixed Admin Size
+          fontSize: `${fontSize}px`,
           fontWeight: zone.fontWeight || "normal",
           color: activeColor, 
           textAlign: textAlign, 
           lineHeight: 1.3,
-          
-          // FULL HEIGHT & WIDTH
           width: '100%', 
           height: isMessageBody ? '100%' : 'auto', 
-          
-          // No Scrollbars visually
           overflow: 'hidden',
           whiteSpace: 'pre-wrap', 
         }}
@@ -143,15 +135,31 @@ const AutoFitTextZone = ({
   );
 };
 
-// --- 3. PAGE CONTENT ---
+// --- 3. PAGE CONTENT (UPDATED) ---
 const PageContent = ({ slide, userInputs, setUserInputs, userStyles, activeZoneId, setActiveZoneId }) => (
     <>
         <ProtectedImage url={slide.background_url} />
+        
+        {/* ✅ RENDER STATIC ZONES (Text & Emoji) */}
         {slide.static_zones?.map((zone) => (
-            <div key={zone.id} style={{ position: "absolute", left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.width}px`, height: `${zone.height}px`, transform: `rotate(${zone.rotation}deg)`, fontSize: `${(zone.fontSize || zone.height) * 0.8}px`, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 5 }}>
-                {zone.type === 'emoji' ? zone.emoji : ''}
-            </div>
+            zone.type === 'emoji' ? (
+                <div key={zone.id} style={{ position: "absolute", left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.width}px`, height: `${zone.height}px`, transform: `rotate(${zone.rotation}deg)`, fontSize: `${(zone.fontSize || zone.height) * 0.8}px`, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 5 }}>
+                    {zone.emoji}
+                </div>
+            ) : (
+                // If it's a text zone, render it using our component in 'static' mode
+                <AutoFitTextZone 
+                    key={zone.id} 
+                    zone={{...zone, contentType: 'static'}} 
+                    value="" 
+                    onChange={()=>{}} 
+                    onFocus={()=>{}} 
+                    userStyle={{}} 
+                />
+            )
         ))}
+
+        {/* ✅ RENDER DYNAMIC ZONES */}
         {slide.dynamic_zones.map((zone) => (
             <AutoFitTextZone 
                 key={zone.id} 
@@ -205,11 +213,9 @@ const LoadingScreen = () => (
 // --- 6. MAIN COMPONENT ---
 export default function EditorPage() {
   const params = useParams();
-  const router = useRouter(); // ✅ 1. INITIALIZE ROUTER HERE
+  const router = useRouter(); 
   
   const [product, setProduct] = useState(null);
-  
-  // STATE
   const [loading, setLoading] = useState(true);
   const [viewState, setViewState] = useState('front');
   const [userInputs, setUserInputs] = useState({});
@@ -218,11 +224,10 @@ export default function EditorPage() {
   const [scale, setScale] = useState(1);
   const containerRef = useRef(null);
 
-  // 1. FETCH DATA & RESTORE DRAFT
+  // 1. FETCH DATA
   useEffect(() => {
     if (!params.sku) return;
 
-    // Use singular 'product' endpoint to match your existing API
     const timer = setTimeout(() => {
         fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
         .then((res) => res.json())
@@ -245,7 +250,7 @@ export default function EditorPage() {
     return () => clearTimeout(timer);
   }, [params.sku]);
 
-  // 2. AUTO-SAVE DRAFT
+  // 2. AUTO-SAVE
   useEffect(() => {
       if (product && !loading) {
           localStorage.setItem(`draft_${params.sku}`, JSON.stringify({
@@ -255,15 +260,14 @@ export default function EditorPage() {
       }
   }, [userInputs, userStyles, product, loading, params.sku]);
 
-  // 3. LOAD FONTS
+  // 3. LOAD FONTS (UPDATED to include Static Zones)
   useEffect(() => {
     if (!product) return;
     const slides = product.design_data?.slides;
-    // Check if slides exist to avoid errors
     if (!slides) return;
 
-    // Helper to safely get zones
-    const getZones = (slide) => slide?.dynamic_zones || [];
+    // Helper: merge static and dynamic zones for font loading
+    const getZones = (slide) => [ ...(slide?.dynamic_zones || []), ...(slide?.static_zones || []) ];
     
     const allZones = [
         ...getZones(slides.front), 
@@ -281,6 +285,7 @@ export default function EditorPage() {
         if (!document.querySelector(`link[href="${link.href}"]`)) document.head.appendChild(link);
       }
     });
+    
     HANDWRITING_FONTS.forEach(f => { if(f.family) { 
         const link = document.createElement("link"); link.href = `https://fonts.googleapis.com/css2?family=${f.family.replace(/ /g, "+")}&display=swap`; link.rel = "stylesheet"; 
         if (!document.querySelector(`link[href="${link.href}"]`)) document.head.appendChild(link);
@@ -303,14 +308,11 @@ export default function EditorPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, [product, viewState, loading]);
 
-  
   const handleProceed = () => {
-      // Force save before navigating
       localStorage.setItem(`draft_${params.sku}`, JSON.stringify({
           inputs: userInputs,
           styles: userStyles
       }));
-      // Navigate to preview page
       router.push(`/preview/${params.sku}`);
   };
 
@@ -334,7 +336,6 @@ export default function EditorPage() {
             <button onClick={() => setViewState('back')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'back' ? 'bg-blue-600 text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>BACK</button>
         </div>
         
-        {/* ✅ UPDATED BUTTON */}
         <button 
             className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full font-bold shadow-lg text-sm transition transform active:scale-95" 
             onClick={handleProceed}

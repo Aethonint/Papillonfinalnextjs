@@ -74,6 +74,12 @@ export default async function CategoryPage({ params }) {
               // 2. PREPARE PROPS FOR DYNAMIC THUMBNAIL
               const frontSlide = product.design_data?.slides?.front;
               
+              // ✅ CRITICAL UPDATE: Merge Static + Dynamic Zones
+              // This grabs the static text (like "Merry Christmas") AND dynamic placeholders
+              const staticZones = frontSlide?.static_zones || [];
+              const dynamicZones = frontSlide?.dynamic_zones || [];
+              const allZones = [...staticZones, ...dynamicZones];
+
               const thumbnailProps = {
                   id: product.id,
                   sku: product.sku,
@@ -81,8 +87,9 @@ export default async function CategoryPage({ params }) {
                   // Use front background if available, else thumbnail, else placeholder
                   thumbnail_url: frontSlide?.background_url || product.thumbnail_url || "/placeholder.png",
                   canvas_settings: product.canvas_settings,
-                  // PASS THE TEXT ZONES HERE
-                  preview_zones: frontSlide?.dynamic_zones || [] 
+                  
+                  // ✅ PASS THE MERGED ZONES HERE
+                  preview_zones: allZones 
               };
 
               return (
