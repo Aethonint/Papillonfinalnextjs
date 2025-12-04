@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ReadOnlyCard from "@/components/ReadOnlyCard";
+import { useCart } from "@/context/CartContext"; // ✅ Import
+
 
 export default function PreviewPage() {
+  const { addToCart } = useCart(); // ✅ Get addToCart from context
   const params = useParams();
   const router = useRouter();
   
@@ -57,27 +60,30 @@ export default function PreviewPage() {
       const thumbUrl = frontSlide?.background_url || product.thumbnail_url || '/placeholder.png';
 
       // 3. Construct the Item Object (Ready to send to API or Context later)
-      const cartItem = {
-          id: Date.now().toString(),
-          product_id: product.id,
-          sku: product.sku,
-          title: product.title,
-          price: finalPrice, 
-          image: thumbUrl,
-          quantity: 1,
-          custom_data: {     
-              inputs: userInputs,
-              styles: userStyles,
-              envelope: envelope
-          }
-      };
+  const cartItem = {
+    id: Date.now().toString(),
+    product_id: product.id,
+    personalization_id: Date.now().toString(), // ✅ unique per personalization
+    sku: product.sku,
+    name: product.title,
+    price: finalPrice,
+    image: thumbUrl,
+    qty: 1,
+    custom_data: {     
+        inputs: userInputs,
+        styles: userStyles,
+        envelope: envelope
+    }
+};
 
-      console.log("Item ready for cart:", cartItem);
 
-      // 4. Clear Draft & Redirect
+  // 1. Add item to CartContext
+      addToCart(cartItem); 
+
+      // 2. Clear Draft
       localStorage.removeItem(`draft_${params.sku}`);
-      
-      // Navigate to cart (or wherever you want the flow to go next)
+
+      // 3. Redirect to cart
       router.push('/cart');
   };
 

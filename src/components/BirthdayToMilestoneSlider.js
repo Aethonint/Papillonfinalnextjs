@@ -2,6 +2,7 @@
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
@@ -49,13 +50,23 @@ export default function BirthdayToMilestoneSlider() {
         </Swiper>
 
      
-        <button className="custom-prev absolute top-1/2 -left-20 -translate-y-1/2 w-[50px] h-[50px] bg-[#9DCDCD] text-black p-3 rounded-full">
-          ◀
-        </button>
-        <button className=" custom-next absolute top-1/2 -right-20 -translate-y-1/2  w-[50px] h-[50px] bg-[#9DCDCD] text-black p-3 rounded-full">
-          ▶
-        </button>
+       <div
+  className="custom-prev absolute top-1/2 -left-20 -translate-y-1/2 
+             w-[50px] h-[50px] bg-[#9DCDCD] text-white rounded-full 
+             flex items-center justify-center cursor-pointer
+             hover:scale-110 transition"
+>
+  <FaChevronLeft size={24} />
+</div>
 
+<div
+  className="custom-next absolute top-1/2 -right-20 -translate-y-1/2 
+             w-[50px] h-[50px] bg-[#9DCDCD] text-white rounded-full 
+             flex items-center justify-center cursor-pointer
+             hover:scale-110 transition"
+>
+  <FaChevronRight size={24} />
+</div>
 
         <div className="custom-pagination flex justify-center mt-6" />
       </div>

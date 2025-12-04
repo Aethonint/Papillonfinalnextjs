@@ -12,8 +12,16 @@ import {
   faStar,
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import { useCart } from "@/context/CartContext";
+
+
 
 export default function Header() {
+
+const { cart } = useCart();
+const cartCount = cart.reduce((a, b) => a + b.qty, 0);
+
+
   const [openMenu, setOpenMenu] = useState(null);
   const [navItems, setNavItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,13 +68,17 @@ export default function Header() {
           <button className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
             <Heart size={20} /> <span className="hidden md:inline text-xs">Saved</span>
           </button>
-          <button className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-            <ShoppingCart size={20} />
-            <span className="absolute -top-1 -right-1 bg-[#66A3A3] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-              0
-            </span>
-            <span className="hidden md:inline text-xs">Cart</span>
-          </button>
+       <Link href="/cart" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
+  <ShoppingCart size={20} />
+  {cartCount > 0 && (
+    <span className="absolute -top-1 -right-1 bg-[#66A3A3] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+      {cartCount}
+    </span>
+  )}
+  <span className="hidden md:inline text-xs">Cart</span>
+</Link>
+
+
         </div>
       </div>
 
@@ -97,7 +109,7 @@ export default function Header() {
 
                 {/* Mega Menu Dropdown */}
                 {openMenu === item.title && item.submenu && (
-                  <div className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-100 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-0 top-44 w-full bg-white shadow-xl border-t border-gray-100 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="container mx-auto px-6 py-10">
                       <div className="grid grid-cols-12 gap-8">
                         
@@ -228,6 +240,10 @@ export default function Header() {
           )}
         </div>
       </nav>
+       {/* Blue line at bottom of header */}
+  <div className="bg-thirdcolor text-white text-center py-2 text-base font-medium">
+  Same day dispatch on all orders before 12pm
+  </div>
     </header>
   );
 }

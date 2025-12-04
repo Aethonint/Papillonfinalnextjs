@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image"; // Import Image for static gallery items
+import Image from "next/image";
 import DynamicThumbnail from "@/components/DynamicThumbnail";
+import { useCart } from "@/context/CartContext"; // Ensure path matches your project
 
 export default function ProductDetailsPage() {
   const params = useParams();
@@ -12,8 +13,14 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // NEW: State to track which image is showing (Default to 'front' dynamic view)
+  // Gallery State
   const [activeView, setActiveView] = useState("front");
+  
+  // Quantity State (Default 1)
+  const [quantity, setQuantity] = useState(1);
+  
+  // Cart Hook
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const sku = params.sku;
@@ -34,6 +41,28 @@ export default function ProductDetailsPage() {
       });
   }, [params.sku]);
 
+  // --- HANDLER: Add Fixed Product Directly to Cart ---
+  const handleAddFixedProduct = () => {
+    if (!product) return;
+
+    const frontSlide = product.design_data?.slides?.front;
+    const itemImage = frontSlide?.background_url || product.thumbnail_url || '/placeholder.png';
+
+    const cartItem = {
+      product_id: product.id,
+      sku: product.sku,
+      name: product.title, // Standardizing to 'name' for CartPage
+      price: parseFloat(product.price),
+      qty: quantity,
+      image: itemImage,
+      personalization_id: null, // No custom ID needed
+      custom_data: null, // No personalization data
+    };
+
+    addToCart(cartItem);
+    alert("Added to cart!"); // Optional: Replace with a toast notification
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
@@ -51,7 +80,7 @@ export default function ProductDetailsPage() {
     );
   }
 
-  // Prepare props for the Dynamic Thumbnail (Front View)
+  // Props for Dynamic Thumbnail
   const frontSlide = product.design_data?.slides?.front;
   const thumbnailProps = {
       id: product.id,
@@ -68,7 +97,7 @@ export default function ProductDetailsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2">
           
-          {/* LEFT COLUMN: Images & Gallery */}
+          {/* LEFT COLUMN: Gallery */}
           <div className="bg-[#F0F7F7] p-8 lg:p-10 flex flex-col items-center justify-center min-h-[600px] relative">
              <Link 
                 href="/" 
@@ -77,13 +106,11 @@ export default function ProductDetailsPage() {
                 ← Back
              </Link>
 
-            {/* --- MAIN PREVIEW AREA --- */}
+            {/* Main Preview */}
             <div className="relative w-full max-w-[450px] aspect-[3/4] shadow-2xl rounded-lg overflow-hidden bg-white mb-8 transition-all duration-300">
                {activeView === "front" ? (
-                 // SHOW DYNAMIC PREVIEW
                  <DynamicThumbnail product={thumbnailProps} />
                ) : (
-                 // SHOW STATIC GALLERY IMAGE
                  <Image 
                    src={activeView} 
                    alt="Gallery View" 
@@ -94,10 +121,8 @@ export default function ProductDetailsPage() {
                )}
             </div>
 
-            {/* --- MINI GALLERY --- */}
+            {/* Mini Gallery Strip */}
             <div className="flex gap-3 overflow-x-auto pb-2 w-full max-w-[450px] justify-center">
-                
-                {/* 1. The "Front" Button (Dynamic Preview) */}
                 <button
                   onClick={() => setActiveView("front")}
                   className={`relative w-20 h-24 flex-shrink-0 rounded-md overflow-hidden border-2 transition-all ${
@@ -108,7 +133,6 @@ export default function ProductDetailsPage() {
                    <span className="absolute bottom-0 left-0 w-full bg-black/50 text-white text-[10px] py-1 text-center font-bold">Front</span>
                 </button>
 
-                {/* 2. Loop through API Gallery Images */}
                 {product.gallery_urls?.map((url, index) => (
                   <button
                     key={index}
@@ -117,25 +141,20 @@ export default function ProductDetailsPage() {
                       activeView === url ? "border-[#66A3A3] ring-2 ring-[#66A3A3]/20" : "border-transparent opacity-70 hover:opacity-100"
                     }`}
                   >
-                    <Image 
-                      src={url} 
-                      alt={`Gallery ${index}`} 
-                      fill 
-                      className="object-cover"
-                      unoptimized={true} 
-                    />
+                    <Image src={url} alt={`Gallery ${index}`} fill className="object-cover" unoptimized={true} />
                   </button>
                 ))}
             </div>
-
           </div>
 
-          {/* RIGHT COLUMN: Details */}
+          {/* RIGHT COLUMN: Details & Actions */}
           <div className="p-10 md:p-16 flex flex-col justify-center bg-white relative z-10">
             
             <div className="mb-6">
-               <span className="inline-block px-4 py-1.5 text-xs font-bold tracking-wider uppercase rounded-full bg-[#E0F2F2] text-[#4A8E8E]">
-                  Personalised Card
+               <span className={`inline-block px-4 py-1.5 text-xs font-bold tracking-wider uppercase rounded-full ${
+                  product.type === 'fixed' ? 'bg-orange-100 text-orange-600' : 'bg-[#E0F2F2] text-[#4A8E8E]'
+               }`}>
+                  {product.type === 'fixed' ? 'Ready to Ship' : 'Personalised Card'}
                </span>
             </div>
 
@@ -151,16 +170,49 @@ export default function ProductDetailsPage() {
             </div>
 
             <div className="mb-10 text-zinc-600 leading-relaxed">
-              <p>{product.description || "A beautiful high-quality greeting card printed on premium 300gsm stock."}</p>
+              <p>{product.description || "A beautiful high-quality product."}</p>
             </div>
 
+            {/* --- CONDITIONAL ACTION AREA --- */}
             <div className="mt-auto">
-                <button
-                  onClick={() => router.push(`/editor/${product.sku}`)}
-                  className="w-full py-5 px-6 bg-[#66A3A3] hover:bg-[#558b8b] text-white font-bold text-lg rounded-2xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center gap-3"
-                >
-                  <span>✏️</span> Personalize This Card
-                </button>
+                
+                {product.type === 'fixed' ? (
+                  // === FIXED PRODUCT (Quantity + Add to Cart) ===
+                  <div className="flex flex-col gap-4">
+                    {/* Quantity Selector */}
+                    <div className="flex items-center gap-4">
+                        <span className="font-bold text-zinc-700">Quantity:</span>
+                        <div className="flex items-center border border-zinc-300 rounded-lg">
+                            <button 
+                                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                                className="w-10 h-10 flex items-center justify-center text-zinc-600 hover:bg-zinc-100 rounded-l-lg"
+                            >-</button>
+                            <span className="w-10 text-center font-bold">{quantity}</span>
+                            <button 
+                                onClick={() => setQuantity(q => q + 1)}
+                                className="w-10 h-10 flex items-center justify-center text-zinc-600 hover:bg-zinc-100 rounded-r-lg"
+                            >+</button>
+                        </div>
+                    </div>
+
+                    {/* Add to Cart Button */}
+                    <button
+                      onClick={handleAddFixedProduct}
+                      className="w-full py-5 px-6 bg-black hover:bg-zinc-800 text-white font-bold text-lg rounded-2xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center gap-3"
+                    >
+                      <span>🛒</span> Add to Cart - £{(parseFloat(product.price) * quantity).toFixed(2)}
+                    </button>
+                  </div>
+
+                ) : (
+                  // === CUSTOMIZABLE PRODUCT (Personalize Button) ===
+                  <button
+                    onClick={() => router.push(`/editor/${product.sku}`)}
+                    className="w-full py-5 px-6 bg-[#66A3A3] hover:bg-[#558b8b] text-white font-bold text-lg rounded-2xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center gap-3"
+                  >
+                    <span>✏️</span> Personalize This Card
+                  </button>
+                )}
 
                 <div className="flex items-center justify-center gap-6 pt-6 text-xs text-zinc-400">
                    <span>🚚 Fast Delivery</span>

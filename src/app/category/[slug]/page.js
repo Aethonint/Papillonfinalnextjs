@@ -102,7 +102,7 @@ export default async function CategoryPage({ params }) {
                     {/* Quick Action Button */}
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 pointer-events-none">
                       <span className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg">
-                        Personalize
+                        {product.type === 'fixed' ? 'View Details' : 'Personalize'}
                       </span>
                     </div>
                   </div>
