@@ -65,7 +65,12 @@ export default function LoginPage() {
               <div className="w-72 h-72 bg-[#66A3A3]/10 rounded-full blur-3xl absolute bottom-0 right-0"></div>
             </div>
             <div className="z-10 flex items-center mb-4">
-              <Image src="/Logo/footerlogo.png" alt="Site Logo" width={100} height={100} className="mr-3" />
+              <Image 
+              src="/logo/newlogo.png" 
+              alt="Home Hero 1" 
+              width={123} 
+              height={111}
+              className="flex  object-contain" />
             </div>
             <h1 className="text-4xl font-extrabold text-[#66A3A3]">Welcome Back!</h1>
             <p className="text-gray-600 mt-2 text-center max-w-xs">Log in to continue exploring personalized gifts & surprises.</p>

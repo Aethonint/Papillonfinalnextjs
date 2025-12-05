@@ -19,7 +19,7 @@ export default function Footer() {
    <div className="flex justify-start items-start gap-20 py-10">
       <div className="flex flex-col items-center xl:items-start sm:max-w-[800px]  xl:max-w-[480px]">
   <Image 
-  src="/logo/footerlogo.png" 
+  src="/logo/newlogo.png" 
   alt="Home Hero 1" 
   width={123} 
   height={111}

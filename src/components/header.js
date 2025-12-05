@@ -50,7 +50,7 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
       {/* Top Bar */}
       <div className="flex items-center justify-center gap-8 px-6 py-4 border-b border-gray-100 container mx-auto">
         <Link href="/" className="flex-shrink-0">
-          <Image src="/logo/headerlogo.png" alt="Papillon Cards" width={100} height={70} className="object-contain" />
+          <Image src="/logo/newlogo.png" alt="Papillon Cards" width={100} height={70} className="object-contain" />
         </Link>
 
         <div className="flex-1 max-w-xl">
