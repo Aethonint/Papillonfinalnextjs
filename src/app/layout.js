@@ -28,18 +28,23 @@
 
 import "./index.css";
 import { CartProvider } from "@/context/CartContext";
+import { Toaster } from 'react-hot-toast'; // <--- Import
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
+        <AuthProvider>
         <CartProvider>
           <Header />
+          <Toaster position="top-center" />
           {children}
           <Footer />
         </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

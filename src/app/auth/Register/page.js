@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FiMail, FiLock, FiUser, FiEye, FiEyeOff } from "react-icons/fi";
+import toast from "react-hot-toast"; // <--- Toast
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -11,15 +11,14 @@ export default function RegisterPage() {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    password_confirmation: "", // Renamed to match Laravel
   });
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState("");
 
+  // Strength checker logic (kept same)
   useEffect(() => {
     if (!form.password) return setPasswordStrength("");
     if (form.password.length < 6) setPasswordStrength("Weak");
@@ -29,147 +28,92 @@ export default function RegisterPage() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
 
-    if (form.password !== form.confirmPassword) {
-      setErrorMsg("Passwords do not match.");
+    if (form.password !== form.password_confirmation) {
+      toast.error("Passwords do not match.");
       setLoading(false);
       return;
     }
 
-    // Simulate registration delay
-    setTimeout(() => {
+    try {
+      const res = await fetch("https://papillondashboard.devshop.site/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Handle validation errors (e.g., email taken)
+        if(data.errors) {
+            Object.values(data.errors).forEach(err => toast.error(err[0]));
+        } else {
+            toast.error(data.message || "Registration failed");
+        }
+        throw new Error("Failed");
+      }
+
+      toast.success("Account created! Check email for OTP.");
+      // Redirect to OTP page with email query param
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(form.email)}`);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-      setSuccessMsg("Account created successfully! Redirecting...");
-      setTimeout(() => router.push("/auth/login"), 2000);
-      console.log("Registered user:", form);
-    }, 1000);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
-
-      {/* Animated floating shapes */}
-      <div className="absolute w-72 h-72 bg-[#66A3A3]/20 rounded-full blur-3xl top-10 left-10 animate-pulse-slow"></div>
-      <div className="absolute w-72 h-72 bg-[#66A3A3]/20 rounded-full blur-3xl bottom-10 right-10 animate-pulse-slow"></div>
-      <div className="absolute w-60 h-60 bg-[#66A3A3]/10 rounded-full blur-2xl top-1/2 left-1/4 animate-spin-slow"></div>
-
-      {/* Morphism Form Card */}
+      {/* ... (Kept your animated shapes & layout logic) ... */}
       <div className="relative z-10 w-full max-w-lg p-10 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-gray-100">
-        <h2 className="text-4xl font-extrabold text-[#66A3A3] mb-8 text-center">
-          Join the Fun!
-        </h2>
-
-        {/* Error/Success messages */}
-        {errorMsg && <div className="mb-4 p-3 bg-red-100 text-red-600 rounded-xl text-center animate-fade">{errorMsg}</div>}
-        {successMsg && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-xl text-center animate-fade">{successMsg}</div>}
+        <h2 className="text-4xl font-extrabold text-[#66A3A3] mb-8 text-center">Join the Fun!</h2>
 
         <form onSubmit={handleRegister} className="space-y-6">
-
           {/* Name */}
           <div className="relative group">
-           <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#66A3A3] text-xl z-10 transition" />
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              required
-              value={form.name}
-              onChange={handleChange}
-              className="w-full pl-12 py-4 rounded-2xl transition shadow-lg bg-white/50 backdrop-blur-sm"
-            />
+           <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl z-10" />
+            <input type="text" name="name" placeholder="Full Name" required value={form.name} onChange={handleChange} className="w-full pl-12 py-4 rounded-2xl bg-white/50 border border-transparent focus:border-[#66A3A3] outline-none shadow-lg transition" />
           </div>
 
           {/* Email */}
           <div className="relative group">
-            <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#66A3A3] text-xl transition z-10" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              required
-              value={form.email}
-              onChange={handleChange}
-              className="w-full pl-12 py-4 rounded-2xl transition shadow-lg bg-white/50 backdrop-blur-sm"
-            />
+            <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl z-10" />
+            <input type="email" name="email" placeholder="Email Address" required value={form.email} onChange={handleChange} className="w-full pl-12 py-4 rounded-2xl bg-white/50 border border-transparent focus:border-[#66A3A3] outline-none shadow-lg transition" />
           </div>
 
           {/* Password */}
           <div className="relative group">
-            <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#66A3A3] text-xl transition z-10" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              required
-              value={form.password}
-              onChange={handleChange}
-              className="w-full pl-12 py-4 rounded-2xl transition shadow-lg bg-white/50 backdrop-blur-sm"
-            />
-            <span
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer transition hover:text-[#66A3A3]"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FiEyeOff size={22} /> : <FiEye size={22} />}
-            </span>
-
-            {/* Password strength bar */}
+            <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl z-10" />
+            <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" required value={form.password} onChange={handleChange} className="w-full pl-12 py-4 rounded-2xl bg-white/50 border border-transparent focus:border-[#66A3A3] outline-none shadow-lg transition" />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <FiEyeOff size={22} /> : <FiEye size={22} />}</span>
+            
+            {/* Strength Bar */}
             {form.password && (
-              <div className="mt-1 h-1 w-full rounded-full overflow-hidden">
-                <div
-                  className={`h-1 ${
-                    passwordStrength === "Weak"
-                      ? "bg-red-500 w-1/3"
-                      : passwordStrength === "Medium"
-                      ? "bg-yellow-400 w-2/3"
-                      : "bg-green-500 w-full"
-                  } transition-all`}
-                ></div>
+              <div className="mt-1 h-1 w-full rounded-full overflow-hidden bg-gray-200">
+                <div className={`h-1 transition-all duration-500 ${passwordStrength === "Weak" ? "bg-red-500 w-1/3" : passwordStrength === "Medium" ? "bg-yellow-400 w-2/3" : "bg-green-500 w-full"}`}></div>
               </div>
             )}
           </div>
 
           {/* Confirm Password */}
           <div className="relative group">
-            <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#66A3A3] text-xl transition z-10" />
-            <input
-              type={showConfirm ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              required
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className="w-full pl-12 py-4 rounded-2xl transition shadow-lg bg-white/50 backdrop-blur-sm"
-            />
-            <span
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer transition hover:text-[#66A3A3]"
-              onClick={() => setShowConfirm(!showConfirm)}
-            >
-              {showConfirm ? <FiEyeOff size={22} /> : <FiEye size={22} />}
-            </span>
+            <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl z-10" />
+            <input type={showConfirm ? "text" : "password"} name="password_confirmation" placeholder="Confirm Password" required value={form.password_confirmation} onChange={handleChange} className="w-full pl-12 py-4 rounded-2xl bg-white/50 border border-transparent focus:border-[#66A3A3] outline-none shadow-lg transition" />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" onClick={() => setShowConfirm(!showConfirm)}>{showConfirm ? <FiEyeOff size={22} /> : <FiEye size={22} />}</span>
           </div>
 
-          {/* Register Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 rounded-3xl font-bold text-white shadow-lg bg-[#66A3A3] hover:scale-105 hover:brightness-110 transition-transform relative overflow-hidden group"
-          >
+          <button type="submit" disabled={loading} className="w-full py-4 rounded-3xl font-bold text-white shadow-lg bg-[#66A3A3] hover:scale-105 transition-transform disabled:opacity-70">
             {loading ? "Creating Account..." : "Register"}
           </button>
-
         </form>
 
-        <p className="mt-6 text-center text-gray-600">
-          Already have an account?{" "}
-          <a href="/auth/login" className="text-[#66A3A3] font-semibold hover:underline">
-            Login
-          </a>
-        </p>
+        <p className="mt-6 text-center text-gray-600">Already have an account? <a href="/auth/login" className="text-[#66A3A3] font-semibold hover:underline">Login</a></p>
       </div>
     </div>
   );

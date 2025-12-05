@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Heart, User } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAuth } from "@/context/AuthContext"; // Import Auth
+import { LogOut } from "lucide-react"; // Import Logout Icon
 import {
   faGift,
   faBirthdayCake,
@@ -17,6 +19,7 @@ import { useCart } from "@/context/CartContext";
 
 
 export default function Header() {
+  const { user, logout } = useAuth(); // <--- ADD THIS LINE
 
 const { cart } = useCart();
 const cartCount = cart.reduce((a, b) => a + b.qty, 0);
@@ -43,7 +46,7 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
   }, []);
 
   return (
-    <header className="w-full relative z-[1000] bg-white">
+   <header className="w-full relative z-[1000] bg-white">
       {/* Top Bar */}
       <div className="flex items-center justify-center gap-8 px-6 py-4 border-b border-gray-100 container mx-auto">
         <Link href="/" className="flex-shrink-0">
@@ -57,31 +60,54 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
               placeholder="Search Cards"
               className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 px-4 pl-10 focus:border-[#66A3A3] focus:ring-1 focus:ring-[#66A3A3] focus:bg-white focus:outline-none transition-all"
             />
-            {/* <span className="absolute left-3.5 top-3 text-gray-400"></span> */}
           </div>
         </div>
 
         <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
-           <Link href="/auth/login" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-          <button className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-            <User size={20} /> <span className="hidden md:inline text-xs">Account</span>
-          </button>
-          </Link>
+           
+           {/* --- 4. AUTHENTICATION LOGIC START --- */}
+           {user ? (
+             // IF LOGGED IN: Show Name + Hover Dropdown
+             <div className="relative group cursor-pointer flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
+               <User size={20} />
+               <span className="hidden md:inline text-xs font-bold text-[#66A3A3]">
+                 {user.name || "My Account"}
+               </span>
+               
+               {/* User Dropdown Menu */}
+               <div className="absolute top-full right-0 pt-2 w-48 hidden group-hover:block z-50">
+                 <div className="bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                      <p className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Signed in as</p>
+                      <p className="text-sm font-bold text-gray-700 truncate">{user.email}</p>
+                    </div>
+                    <button 
+                      onClick={logout}
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"
+                    >
+                      <LogOut size={16} /> Logout
+                    </button>
+                 </div>
+               </div>
+             </div>
+           ) : (
+             // IF LOGGED OUT: Show Sign In Link
+             <Link href="/auth/login" className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
+                <User size={20} /> 
+                <span className="hidden md:inline text-xs">Sign In</span>
+             </Link>
+           )}
+           {/* --- AUTHENTICATION LOGIC END --- */}
 
-          {/* <button className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-            <Heart size={20} /> <span className="hidden md:inline text-xs">Saved</span>
-          </button> */}
-       <Link href="/cart" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-  <ShoppingCart size={20} />
-  {cartCount > 0 && (
-    <span className="absolute -top-1 -right-1 bg-[#66A3A3] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-      {cartCount}
-    </span>
-  )}
-  <span className="hidden md:inline text-xs">Cart</span>
-</Link>
-
-
+           <Link href="/cart" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#66A3A3] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                  {cartCount}
+                </span>
+              )}
+              <span className="hidden md:inline text-xs">Cart</span>
+           </Link>
         </div>
       </div>
 
