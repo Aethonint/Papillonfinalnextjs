@@ -45,7 +45,7 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
   return (
     <header className="w-full relative z-[1000] bg-white">
       {/* Top Bar */}
-      <div className="flex items-center justify-between gap-8 px-6 py-4 border-b border-gray-100 container mx-auto">
+      <div className="flex items-center justify-center gap-8 px-6 py-4 border-b border-gray-100 container mx-auto">
         <Link href="/" className="flex-shrink-0">
           <Image src="/logo/headerlogo.png" alt="Papillon Cards" width={100} height={70} className="object-contain" />
         </Link>
@@ -57,17 +57,20 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
               placeholder="Search Cards"
               className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 px-4 pl-10 focus:border-[#66A3A3] focus:ring-1 focus:ring-[#66A3A3] focus:bg-white focus:outline-none transition-all"
             />
-            <span className="absolute left-3.5 top-3 text-gray-400">🔍</span>
+            {/* <span className="absolute left-3.5 top-3 text-gray-400"></span> */}
           </div>
         </div>
 
         <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
+           <Link href="/auth/login" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
           <button className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-            <User size={20} /> <span className="hidden md:inline text-xs">Sign in</span>
+            <User size={20} /> <span className="hidden md:inline text-xs">Account</span>
           </button>
-          <button className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
+          </Link>
+
+          {/* <button className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
             <Heart size={20} /> <span className="hidden md:inline text-xs">Saved</span>
-          </button>
+          </button> */}
        <Link href="/cart" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
   <ShoppingCart size={20} />
   {cartCount > 0 && (

@@ -24,8 +24,7 @@ export default function Footer() {
   width={123} 
   height={111}
   className="flex  object-contain" />
-            <p className="text-sm w-[400px] text-black pt-4 sm:text-center xl:text-start font-albert text-center">
-Is she more of the sentimental type? Add a personal touch and upload special memories.Is she more of the sentimental type? Add a personal touch and upload special memories.Is she more of the sentimental type? Add a personal touch and upload special memories.            </p>
+          
           </div>
 
 

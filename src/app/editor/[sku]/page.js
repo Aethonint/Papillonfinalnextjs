@@ -93,11 +93,11 @@ const AutoFitTextZone = ({
         padding: isMessageBody ? '15px' : '0px',
         overflow: 'visible'     
       }}
-      className={`group cursor-text transition-all duration-200 ${isFocused ? "border-2 border-blue-500 ring-4 ring-blue-500/10" : "border-2 border-dashed border-blue-300/60 hover:border-blue-500"}`}
+      className={`group cursor-text transition-all duration-200 ${isFocused ? "border-2 border-thirdcolor ring-4 ring-blue-500/10" : "border-2 border-dashed border-blue-300/60 hover:border-thirdcolor"}`}
       onClick={() => { textRef.current?.focus(); }}
     >
       {/* "T" INDICATOR */}
-      <div className={`absolute -top-3 -left-3 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm z-30 pointer-events-none transition-opacity duration-200 ${isFocused || value.length > 0 ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`absolute -top-3 -left-3 w-6 h-6 bg-thirdcolor text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm z-30 pointer-events-none transition-opacity duration-200 ${isFocused || value.length > 0 ? 'opacity-0' : 'opacity-100'}`}>
         T
       </div>
 
@@ -182,18 +182,18 @@ const FloatingToolbar = ({ activeZoneId, userStyles, setUserStyles }) => {
     };
 
     return (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white dark:bg-zinc-800 shadow-2xl rounded-2xl px-6 py-3 flex items-center gap-6 z-[100] border border-zinc-200 dark:border-zinc-700 animate-slide-up">
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white shadow-2xl rounded-2xl px-6 py-3 flex items-center gap-6 z-[100] border border-zinc-200 animate-slide-up">
             <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Font</span>
-                <select className="bg-zinc-100 dark:bg-zinc-700 text-sm rounded px-2 py-1 outline-none border-none focus:ring-2 ring-blue-500" value={currentStyle.fontFamily || ''} onChange={(e) => handleStyleChange('fontFamily', e.target.value)}>
+                <span className="text-[10px] uppercase font-bold text-zinc-600 tracking-wider">Font</span>
+                <select className="bg-zinc-100 text-sm rounded px-2 py-1 outline-none border-none focus:ring-2 ring-thirdcolor" value={currentStyle.fontFamily || ''} onChange={(e) => handleStyleChange('fontFamily', e.target.value)}>
                     {HANDWRITING_FONTS.map(f => ( <option key={f.name} value={f.family} style={{ fontFamily: f.family || 'inherit' }}>{f.name}</option> ))}
                 </select>
             </div>
-            <div className="w-[1px] h-8 bg-zinc-200 dark:bg-zinc-600"></div>
+            <div className="w-[1px] h-8 bg-zinc-200"></div>
             <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Color</span>
+                <span className="text-[10px] uppercase font-bold text-zinc-600 tracking-wider">Color</span>
                 <div className="flex gap-2">
-                    {INK_COLORS.map(c => ( <button key={c.name} onClick={() => handleStyleChange('color', c.value)} className={`w-6 h-6 rounded-full border-2 transition-all ${currentStyle.color === c.value ? 'border-blue-500 scale-110' : 'border-transparent hover:scale-110'}`} style={{ backgroundColor: c.value }} title={c.name} /> ))}
+                    {INK_COLORS.map(c => ( <button key={c.name} onClick={() => handleStyleChange('color', c.value)} className={`w-6 h-6 rounded-full border-2 transition-all ${currentStyle.color === c.value ? 'border-thirdcolor scale-110' : 'border-transparent hover:scale-110'}`} style={{ backgroundColor: c.value }} title={c.name} /> ))}
                 </div>
             </div>
         </div>
@@ -203,9 +203,9 @@ const FloatingToolbar = ({ activeZoneId, userStyles, setUserStyles }) => {
 
 // --- 5. LOADING SCREEN ---
 const LoadingScreen = () => (
-    <div className="fixed inset-0 bg-white dark:bg-zinc-950 z-[9999] flex flex-col items-center justify-center">
-        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <h2 className="text-xl font-bold text-zinc-800 dark:text-white animate-pulse">Setting up Studio...</h2>
+    <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
+        <div className="w-16 h-16 border-4 border-thirdcolor border-t-transparent rounded-full animate-spin mb-4"></div>
+        <h2 className="text-xl font-bold text-zinc-800 animate-pulse">Setting up Studio...</h2>
         <p className="text-sm text-zinc-500 mt-2">Loading fonts & assets</p>
     </div>
 );
@@ -326,14 +326,14 @@ export default function EditorPage() {
   const baseZ = isBack ? 20 : 10;
 
   return (
-    <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 flex flex-col items-center py-6 select-none overflow-x-hidden" onContextMenu={(e) => e.preventDefault()} onClick={() => setActiveZoneId(null)}>
+    <div className="min-h-screen bg-zinc-100  flex flex-col items-center py-6 select-none overflow-x-hidden" onContextMenu={(e) => e.preventDefault()} onClick={() => setActiveZoneId(null)}>
       
       <div className="w-full max-w-[1000px] px-4 mb-6 flex justify-between items-center z-50">
-        <Link href={`/preview/${params.sku}`} className="text-zinc-500 hover:text-black dark:text-zinc-400 font-medium">← Cancel</Link>
-        <div className="hidden sm:flex bg-white dark:bg-zinc-800 rounded-full p-1 shadow-sm border border-zinc-200 dark:border-zinc-700">
-            <button onClick={() => setViewState('front')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'front' ? 'bg-blue-600 text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>FRONT</button>
-            <button onClick={() => setViewState('inner')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'inner' ? 'bg-blue-600 text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>INSIDE</button>
-            <button onClick={() => setViewState('back')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'back' ? 'bg-blue-600 text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>BACK</button>
+        <Link href={`/product/${params.sku}`} className="text-zinc-800 hover:text-black font-medium">← Cancel</Link>
+        <div className="hidden sm:flex bg-white rounded-full p-1 shadow-sm border border-zinc-200">
+            <button onClick={() => setViewState('front')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'front' ? 'bg-thirdcolor text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>FRONT</button>
+            <button onClick={() => setViewState('inner')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'inner' ? 'bg-thirdcolor text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>INSIDE</button>
+            <button onClick={() => setViewState('back')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${viewState === 'back' ? 'bg-thirdcolor text-white shadow' : 'text-zinc-500 hover:bg-zinc-100'}`}>BACK</button>
         </div>
         
         <button 
@@ -374,9 +374,9 @@ export default function EditorPage() {
       <FloatingToolbar activeZoneId={activeZoneId} userStyles={userStyles} setUserStyles={setUserStyles} />
 
       <div className="w-full max-w-[400px] mt-8 flex gap-4 px-4">
-             {viewState === 'front' && <button onClick={() => setViewState('inner')} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg">Open Card →</button>}
-             {viewState === 'inner' && ( <> <button onClick={() => setViewState('front')} className="flex-1 py-3 bg-zinc-200 text-zinc-800 font-bold rounded-xl">← Close</button> <button onClick={() => setViewState('back')} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg">Back of Card →</button> </> )}
-             {viewState === 'back' && <button onClick={() => setViewState('inner')} className="flex-1 py-3 bg-zinc-200 text-zinc-800 font-bold rounded-xl">← Turn Over</button>}
+             {viewState === 'front' && <button onClick={() => setViewState('inner')} className="flex-1 py-3 bg-thirdcolor text-white font-bold rounded-xl shadow-lg">Open Card →</button>}
+             {viewState === 'inner' && ( <> <button onClick={() => setViewState('front')} className="flex-1 py-3 bg-zinc-300 text-zinc-800 font-bold rounded-xl">← Close</button> <button onClick={() => setViewState('back')} className="flex-1 py-3 bg-thirdcolor text-white font-bold rounded-xl shadow-lg">Back of Card →</button> </> )}
+             {viewState === 'back' && <button onClick={() => setViewState('inner')} className="flex-1 py-3 bg-zinc-300 text-zinc-800 font-bold rounded-xl">← Turn Over</button>}
       </div>
 
       <style jsx global>{`

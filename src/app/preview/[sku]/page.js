@@ -76,18 +76,18 @@ export default function PreviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-8 px-4 flex flex-col items-center">
+    <div className="min-h-screen bg-zinc-5 py-8 px-4 flex flex-col items-center">
       
       <div className="w-full max-w-6xl flex justify-between items-center mb-8">
-         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Review Your Card</h1>
-         <button onClick={() => router.back()} className="text-blue-600 hover:underline">← Go Back & Edit</button>
+         <h1 className="text-2xl font-bold text-zinc-900">Review Your Card</h1>
+         <button onClick={() => router.back()} className="text-black hover:text-thirdcolor">← Go Back & Edit</button>
       </div>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-12">
           
           {/* INTERACTIVE PREVIEW */}
           <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-8 flex flex-col items-center">
+              <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 p-8 flex flex-col items-center">
                   
                   <div className="w-full relative flex justify-center items-center" style={{ minHeight: '500px' }}>
                       <ReadOnlyCard 
@@ -99,9 +99,9 @@ export default function PreviewPage() {
                   </div>
 
                   <div className="flex gap-4 mt-8">
-                      <button onClick={() => setViewState('front')} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${viewState==='front' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600'}`}>Front</button>
-                      <button onClick={() => setViewState('inner')} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${viewState==='inner' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600'}`}>Inside</button>
-                      <button onClick={() => setViewState('back')} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${viewState==='back' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600'}`}>Back</button>
+                      <button onClick={() => setViewState('front')} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${viewState==='front' ? 'bg-thirdcolor text-white' : 'bg-zinc-100 text-zinc-600'}`}>Front</button>
+                      <button onClick={() => setViewState('inner')} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${viewState==='inner' ? 'bg-thirdcolor text-white' : 'bg-zinc-100 text-zinc-600'}`}>Inside</button>
+                      <button onClick={() => setViewState('back')} className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${viewState==='back' ? 'bg-thirdcolor text-white' : 'bg-zinc-100 text-zinc-600'}`}>Back</button>
                   </div>
               </div>
           </div>
@@ -109,23 +109,23 @@ export default function PreviewPage() {
           {/* RIGHT COLUMN */}
           <div className="space-y-6">
               
-              <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200">
                   <h3 className="font-bold text-lg mb-4">Please Check Carefully</h3>
                   <div className="space-y-3">
                       <label className="flex items-start gap-3 cursor-pointer">
-                          <input type="checkbox" className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                          <input type="checkbox" className="mt-1 w-5 h-5 rounded border-gray-300 text-thirdcolor focus:ring-thirdcolor" 
                                  checked={checks.spelling} onChange={(e) => setChecks(prev => ({...prev, spelling: e.target.checked}))} />
-                          <span className="text-sm text-zinc-600 dark:text-zinc-300">I have checked spelling and grammar.</span>
+                          <span className="text-sm text-zinc-600">I have checked spelling and grammar.</span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">
-                          <input type="checkbox" className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                          <input type="checkbox" className="mt-1 w-5 h-5 rounded border-gray-300 text-thirdcolor focus:ring-thirdcolor" 
                                  checked={checks.layout} onChange={(e) => setChecks(prev => ({...prev, layout: e.target.checked}))} />
-                          <span className="text-sm text-zinc-600 dark:text-zinc-300">I am happy with the photo layout.</span>
+                          <span className="text-sm text-zinc-600">I am happy with the photo layout.</span>
                       </label>
                   </div>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200 ">
                   <h3 className="font-bold text-lg mb-4">Choose Envelope</h3>
                   <div className="space-y-3">
                       <label className={`flex justify-between items-center p-3 rounded-lg border cursor-pointer transition ${envelope === 'white' ? 'border-blue-600 bg-blue-50' : 'border-zinc-200'}`}>
