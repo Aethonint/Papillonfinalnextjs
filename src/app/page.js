@@ -3,12 +3,13 @@ import Link from 'next/link'
 import BirthdayToMilestoneSlider from '@/components/BirthdayToMilestoneSlider'
 import DynamicThumbnail from '@/components/DynamicThumbnail'
 
+// Added new icons for the new categories
 import { 
-  FaBirthdayCake, FaHeart, FaBaby, FaCamera, FaRegSmileBeam, FaGift, FaHandsHelping, FaStar 
+  FaBirthdayCake, FaHeart, FaBaby, FaRegSmileBeam, FaHandsHelping, FaUserTie, FaUser
 } from 'react-icons/fa';
 import { GiRing } from 'react-icons/gi';
 
-// 1. FETCH BIRTHDAY CARDS
+// 1. FETCH BIRTHDAY CARDS (Section 4)
 async function getBirthdayCards() {
   try {
     const res = await fetch('http://localhost:8000/api/products/category/birthday', { 
@@ -21,7 +22,7 @@ async function getBirthdayCards() {
   }
 }
 
-// 2. FETCH LATEST PRODUCTS
+// 2. FETCH LATEST PRODUCTS (Section 5 - Slider)
 async function getLatestProducts() {
   try {
     const res = await fetch('http://localhost:8000/api/products', { 
@@ -42,22 +43,36 @@ async function PageHome() {
   const birthdayProducts = birthdayData?.products?.data?.slice(0, 5) || [];
   
   // Section 5 Data (Latest 10 - Customizable Only)
+  // KEEPING THIS LOGIC AS YOU REQUESTED TO KEEP SLIDER WORKING
   const allLatest = latestData?.data || [];
   const customizableOnly = allLatest.filter(product => product.type !== 'fixed');
   const sliderProducts = customizableOnly.slice(0, 10);
 
-  // --- UPDATED TOP PICKS (With Correct Slugs) ---
+  // --- UPDATED TOP PICKS (Strictly matching your Seeder Slugs) ---
   const topPicks = [
-    { title: "Birthday Cards", icon: <FaBirthdayCake className="text-[#66A3A3]" />, link: "birthday" },
-    { title: "Anniversary Cards", icon: <FaHeart className="text-[#FF6B6B]" />, link: "anniversary" },
-    { title: "Children Cards", icon: <FaBaby className="text-[#6BCBFF]" />, link: "childrens-birthday" },
-    { title: "Latest Cards", icon: <FaStar className="text-[#FFD93D]" />, link: "latest" }, 
-    { title: "Baby Cards", icon: <FaBaby className="text-[#66A3A3]" />, link: "baby-cards" },
-    { title: "Wedding Cards", icon: <GiRing className="text-[#9B5DE5]" />, link: "wedding-cards" },
+    // 1. Birthday
+    { title: "Birthday", icon: <FaBirthdayCake className="text-[#66A3A3]" />, link: "birthday" },
     
-    // --- FIXED LINKS HERE ---
-    { title: "Get Well Soon", icon: <FaRegSmileBeam className="text-[#3BC9DB]" />, link: "gestural-cards-get-well-soon" },
-    { title: "Thank You Cards", icon: <FaHandsHelping className="text-[#FF9F1C]" />, link: "gestural-cards-thank-you-cards" },
+    // 2. Anniversary
+    { title: "Anniversary", icon: <FaHeart className="text-[#FF6B6B]" />, link: "anniversary" },
+    
+    // 3. For Him
+    { title: "For Him", icon: <FaUserTie className="text-[#6BCBFF]" />, link: "birthday-for-him" },
+    
+    // 4. For Her
+    { title: "For Her", icon: <FaUser className="text-[#FFD93D]" />, link: "birthday-for-her" },
+    
+    // 5. New Baby (Seeder: New Born)
+    { title: "New Baby", icon: <FaBaby className="text-[#66A3A3]" />, link: "congratulations-new-born" },
+    
+    // 6. Wedding
+    { title: "Wedding", icon: <GiRing className="text-[#9B5DE5]" />, link: "congratulations-wedding-congratulations" },
+    
+    // 7. Get Well Soon
+    { title: "Get Well", icon: <FaRegSmileBeam className="text-[#3BC9DB]" />, link: "gestural-cards-get-well-soon" },
+    
+    // 8. Thank You
+    { title: "Thank You", icon: <FaHandsHelping className="text-[#FF9F1C]" />, link: "gestural-cards-thank-you-cards" },
   ];
 
   return (
@@ -87,7 +102,7 @@ async function PageHome() {
         </div>
       </section>
 
-      {/* --- SECTION 2: TOP PICKS --- */}
+      {/* --- SECTION 2: TOP PICKS (Updated) --- */}
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-3xl font-extrabold text-black mb-16">
@@ -143,7 +158,6 @@ async function PageHome() {
         <div className='flex flex-col justify-start items-center w-full max-w-[1428px] px-4'>
           <div className="w-full flex justify-between items-end mb-8">
              <h2 className="text-4xl font-black text-black">Cards For Birthday</h2>
-             {/* Updated Link to show ALL Birthday Cards */}
              <Link href="/category/birthday" className="text-[#66A3A3] font-bold hover:underline">View All</Link>
           </div>
 
@@ -191,7 +205,7 @@ async function PageHome() {
         </div>
       </section>
 
-      {/* --- SECTION 5: MILESTONES --- */}
+      {/* --- SECTION 5: MILESTONES (Working Slider) --- */}
       <section className='flex flex-col justify-center items-center py-20'>
         <div className='max-w-[1428px] w-full px-4 pt-5 text-center mb-10'>
             <h2 className="text-4xl font-black text-black mb-4">From Birthday to Milestones</h2>

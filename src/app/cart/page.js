@@ -1,15 +1,28 @@
 "use client";
 import React from "react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext"; // 1. Import Auth Context
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // Using Next.js Image for better performance
+import Image from "next/image"; 
 
 const CartPage = () => {
   const { cart, updateQuantity, removeFromCart, subtotal, total } = useCart();
+  const { user } = useAuth(); // 2. Get User State
   const router = useRouter();
 
-  // Calculate total items for the header
   const totalItemsCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+
+  // 3. New Checkout Handler
+  const handleCheckout = () => {
+    if (user) {
+      // User is logged in -> Go to Checkout
+      router.push("/checkout");
+    } else {
+      // User is NOT logged in -> Go to Login
+      // Optional: Add ?redirect=/checkout so they come back after login
+      router.push("/auth/login?redirect=/checkout");
+    }
+  };
 
   return (
     <div className="w-full p-6 max-w-7xl mx-auto min-h-screen bg-white">
@@ -50,7 +63,7 @@ const CartPage = () => {
                     alt={item.title || "Product"}
                     fill
                     className="object-cover"
-                    unoptimized={true} // Allow external images
+                    unoptimized={true} 
                   />
                 </div>
 
@@ -61,55 +74,31 @@ const CartPage = () => {
                         <h3 className="text-lg font-bold text-gray-900">{item.title || item.name}</h3>
                         <p className="text-sm text-gray-500 mb-3 font-mono">{item.sku}</p>
                       </div>
-                      {/* Price on Mobile Top Right */}
                       <span className="sm:hidden text-lg font-bold text-gray-900">£{parseFloat(item.price).toFixed(2)}</span>
                   </div>
                   
-                  {/* --- PERSONALIZATION DETAILS SECTION --- */}
+                  {/* Personalization Details */}
                   {item.custom_data && (
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                        
-                        {/* 1. Envelope Choice */}
                         {item.custom_data.envelope && (
                             <div className="flex items-center gap-2 text-sm">
                                 <span className="font-bold text-gray-400 text-xs uppercase tracking-wider">Envelope:</span>
                                 <span className="font-medium text-gray-800">{item.custom_data.envelope}</span>
                             </div>
                         )}
-
-                        {/* 2. Dynamic Inputs (Front, Back, etc.) */}
                         {item.custom_data.inputs && Array.isArray(item.custom_data.inputs) && 
                            item.custom_data.inputs.map((input, i) => (
                              <div key={i} className="border-t border-gray-200 pt-2 first:border-0 first:pt-0">
-                                
-                                {/* Label & Meta (Font Name) */}
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="font-bold text-[10px] uppercase tracking-widest text-[#66A3A3]">
                                         {input.label || "TEXT ZONE"}
                                     </span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] text-gray-400 font-medium">
-                                            {input.fontFamily}
-                                        </span>
-                                        {/* Color Dot */}
-                                        <span 
-                                            className="w-3 h-3 rounded-full border border-gray-300 shadow-sm" 
-                                            style={{ backgroundColor: input.color }}
-                                            title={input.color}
-                                        ></span>
+                                        <span className="text-[10px] text-gray-400 font-medium">{input.fontFamily}</span>
+                                        <span className="w-3 h-3 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: input.color }} title={input.color}></span>
                                     </div>
                                 </div>
-
-                                {/* The Actual User Text (Styled) */}
-                                <p 
-                                    className="text-lg leading-snug break-words" 
-                                    style={{ 
-                                        fontFamily: input.fontFamily, 
-                                        color: input.color 
-                                    }}
-                                >
-                                    {input.value}
-                                </p>
+                                <p className="text-lg leading-snug break-words" style={{ fontFamily: input.fontFamily, color: input.color }}>{input.value}</p>
                              </div>
                            ))
                         }
@@ -117,30 +106,16 @@ const CartPage = () => {
                   )}
                 </div>
 
-                {/* Right Side Controls (Desktop) */}
+                {/* Controls */}
                 <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-4 mt-4 sm:mt-0">
                     <span className="hidden sm:block text-xl font-bold text-gray-900">£{parseFloat(item.price).toFixed(2)}</span>
-                    
                     <div className="flex items-center border border-gray-300 rounded-lg bg-white">
-                      <button
-                        onClick={() => updateQuantity(item.product_id, item.custom_data, (item.qty || 1) - 1)}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition"
-                      >-</button>
+                      <button onClick={() => updateQuantity(item.product_id, item.custom_data, (item.qty || 1) - 1)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition">-</button>
                       <span className="w-8 text-center font-semibold text-sm">{item.qty || 1}</span>
-                      <button
-                        onClick={() => updateQuantity(item.product_id, item.custom_data, (item.qty || 1) + 1)}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition"
-                      >+</button>
+                      <button onClick={() => updateQuantity(item.product_id, item.custom_data, (item.qty || 1) + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition">+</button>
                     </div>
-
-                    <button
-                      onClick={() => removeFromCart(item.product_id, item.custom_data)}
-                      className="text-red-500 text-xs font-bold hover:text-red-700 hover:underline transition"
-                    >
-                      Remove Item
-                    </button>
+                    <button onClick={() => removeFromCart(item.product_id, item.custom_data)} className="text-red-500 text-xs font-bold hover:text-red-700 hover:underline transition">Remove Item</button>
                 </div>
-
               </div>
             ))}
           </div>
@@ -166,8 +141,9 @@ const CartPage = () => {
                     <span>£{total.toFixed(2)}</span>
                 </div>
 
+                {/* 4. Use handleCheckout instead of router.push */}
                 <button
-                    onClick={() => router.push("/checkout")}
+                    onClick={handleCheckout}
                     className="mt-4 w-full bg-[#66A3A3] hover:bg-[#588b8b] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-700/10 transition-all transform active:scale-95 flex justify-center items-center gap-2"
                 >
                     Secure Checkout 🔒
