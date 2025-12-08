@@ -79,13 +79,32 @@ async function PageHome() {
     <div className="nc-PageHome relative overflow-hidden bg-white">
 
       {/* --- SECTION 1: HERO --- */}
+     {/* --- SECTION 1: HERO --- */}
       <section>
         <div className="flex justify-center items-center px-4 lg:px-20 mt-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-[#9DCDCD] text-white w-full lg:w-[85%] min-h-[500px] rounded-xl p-8 lg:p-0">
             <div className="flex justify-center items-center px-5 relative h-[300px] lg:h-auto">
-              <Image src="/home/birdthdaytomilestone/15.png" alt="Rotated left" width={200} height={280} className="absolute left-10 lg:left-20 z-10 rotate-[-10deg] shadow-md shadow-black/40" />
-              <Image src="/home/birdthdaytomilestone/17.png" alt="Birthday Cake" width={200} height={280} className="absolute z-20 shadow-md shadow-black/40" />
-              <Image src="/images/46.png" alt="Birthday Cake" width={200} height={280} className="absolute right-10 lg:right-20 z-30 rotate-[10deg] shadow-md shadow-black/40" />
+              <Image 
+                src="/home/birdthdaytomilestone/15.png" 
+                alt="Rotated left" 
+                width={200} height={280} 
+                className="absolute left-10 lg:left-20 z-10 rotate-[-10deg] shadow-md shadow-black/40" 
+                unoptimized // <--- ADDED
+              />
+              <Image 
+                src="/home/birdthdaytomilestone/17.png" 
+                alt="Birthday Cake" 
+                width={200} height={280} 
+                className="absolute z-20 shadow-md shadow-black/40" 
+                unoptimized // <--- ADDED
+              />
+              <Image 
+                src="/images/46.png" 
+                alt="Birthday Cake" 
+                width={200} height={280} 
+                className="absolute right-10 lg:right-20 z-30 rotate-[10deg] shadow-md shadow-black/40" 
+                unoptimized // <--- ADDED
+              />
             </div>
             <div className="flex flex-col justify-center items-center lg:items-start gap-y-4 text-center lg:text-left">
               <h1 className='font-extrabold text-4xl lg:text-5xl leading-tight'>
@@ -102,54 +121,48 @@ async function PageHome() {
         </div>
       </section>
 
-      {/* --- SECTION 2: TOP PICKS (Updated) --- */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-3xl font-extrabold text-black mb-16">
-            Our Top Picks
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-8 justify-items-center">
-            {topPicks.map((item, index) => (
-              <Link 
-                href={`/category/${item.link}`} 
-                key={index} 
-                className="w-full flex justify-center"
-              >
-                <div className="flex flex-col justify-center items-center bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer w-full max-w-[150px]">
-                  <div className="flex justify-center items-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#66A3A3]/20 to-[#66A3A3]/10 rounded-full mb-4 shadow-inner">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-sm md:text-base font-semibold text-gray-800 text-center">{item.title}</h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --- SECTION 3: PROMO SPLIT --- */}
+    {/* --- SECTION 3: PROMO SPLIT --- */}
       <section className="py-10 px-6">
         <div className="max-w-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+          
+          {/* Left Card (Pink) */}
           <div className="bg-gradient-to-br from-[#FFAFB5] to-[#FFCED4] rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
             <h2 className="text-3xl md:text-3xl font-extrabold text-gray-900 text-center mb-8">Say it your way — for any occasion</h2>
             <div className="grid grid-cols-4 gap-4 justify-items-center">
               {["/images/50.png", "/images/51.png", "/images/52.png", "/images/55.png"].map((src, i) => (
                 <div key={i} className="hover:-translate-y-2 transition-all duration-300">
-                  <Image src={src} alt="Card" width={146} height={208} className="rounded-xl shadow-lg" />
+                  <Image 
+                    src={src} 
+                    alt="Card" 
+                    width={146} 
+                    height={208} 
+                    className="rounded-xl shadow-lg" 
+                    unoptimized // <--- FIXED (Already present)
+                  />
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Right Card (Teal) */}
           <div className="bg-gradient-to-br from-[#90CCCC] to-[#AEE8E8] rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
             <div className="grid grid-cols-4 gap-4 justify-items-center mb-8">
               {["/home/a1.png", "/home/a5.png", "/home/a8.png", "/home/a9.png"].map((src, i) => (
                 <div key={i} className="hover:-translate-y-2 transition-all duration-300">
-                  <Image src={src} alt="Card" width={146} height={208} className="rounded-xl shadow-lg" />
+                  <Image 
+                    src={src} 
+                    alt="Card" 
+                    width={146} 
+                    height={208} 
+                    className="rounded-xl shadow-lg" 
+                    unoptimized // <--- ADDED FIX HERE
+                  />
                 </div>
               ))}
             </div>
             <h2 className="text-3xl md:text-3xl font-extrabold text-gray-900 text-center">Make it personal — make it unforgettable</h2>
           </div>
+
         </div>
       </section>
 

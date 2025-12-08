@@ -35,7 +35,7 @@ const CartPage = () => {
       {cart.length === 0 && (
         <div className="py-32 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-300">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Your basket is empty</h2>
-          <p className="text-gray-500 mb-8">Looks like you haven't personalized any cards yet.</p>
+         <p className="text-gray-500 mb-8">Looks like you haven&apos;t personalized any cards yet.</p>
           <button
             onClick={() => router.push("/")}
             className="px-8 py-3 bg-zinc-900 text-white font-bold rounded-full hover:bg-zinc-800 transition"
