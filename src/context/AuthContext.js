@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     try {
         if (token) {
             // Optional: Call API to invalidate token on server
-            await fetch("https://papillondashboard.devshop.site/api/logout", {
+            await fetch("http://localhost:8000/api/logout", {
                 method: "POST",
                 headers: { 
                     "Authorization": `Bearer ${token}`,
