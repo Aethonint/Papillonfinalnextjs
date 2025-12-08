@@ -1,0 +1,138 @@
+"use client";
+
+import { useState } from "react";
+import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+import { useCart } from "@/context/CartContext";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast"; 
+
+export default function CheckoutForm({ totalAmount, shippingDetails }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { cart, clearCart } = useCart();
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) return;
+
+    setIsLoading(true);
+
+    // 1. Confirm Payment with Stripe
+    const result = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required", // Don't redirect, handle in JS
+    });
+
+    if (result.error) {
+      // HANDLE EDGE CASE: "PaymentIntent unexpected state"
+      // This happens if payment succeeded but UI re-triggered submission
+      if (
+        result.error.payment_intent &&
+        result.error.payment_intent.status === "succeeded"
+      ) {
+        console.log("Payment was already successful. Saving order...");
+        await saveOrderToBackend(result.error.payment_intent.id);
+      } else {
+        // Genuine Error
+        toast.error(result.error.message || "Payment Failed");
+        setIsLoading(false);
+      }
+
+    } else if (result.paymentIntent && result.paymentIntent.status === "succeeded") {
+      // Standard Success Path
+      await saveOrderToBackend(result.paymentIntent.id);
+    } else {
+      toast.error("Payment processing issue.");
+      setIsLoading(false);
+    }
+  };
+
+  const saveOrderToBackend = async (transactionId) => {
+    const loadingToastId = toast.loading("Finalizing Order...");
+
+    try {
+      const token = localStorage.getItem('auth_token');
+
+      // 2. Prepare Data for Laravel
+      const orderPayload = {
+        items: cart.map(item => ({
+            id: item.product_id,
+            title: item.title || item.name,
+            sku: item.sku,
+            qty: item.qty || 1,
+            price: item.price,
+            size: "A5", // Default size, or get from custom_data
+            personalisation_inputs: item.custom_data
+        })),
+        shipping_address: shippingDetails,
+        payment: {
+            method: 'stripe',
+            transaction_id: transactionId
+        },
+        delivery_type: 'to_self',
+        subtotal: totalAmount,
+        shipping_cost: 0,
+        total: totalAmount
+      };
+      
+      // 3. Send to Laravel API
+      const res = await fetch("http://localhost:8000/api/orders", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(orderPayload),
+      });
+
+      const data = await res.json();
+
+      toast.dismiss(loadingToastId);
+
+      if (res.ok && data.success) {
+        clearCart();
+        toast.success(`Order #${data.order_number} Placed! Check email.`);
+        router.push("/"); // Redirect Home
+      } else {
+        toast.error("Payment received, but order saving failed.");
+        console.error("Backend Error:", data);
+      }
+
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      console.error(err);
+      toast.error("Network error saving order.");
+    }
+    
+    setIsLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+      <h2 className="text-xl font-bold mb-4 text-zinc-900">Payment Details</h2>
+      
+      {/* Stripe Credit Card Element */}
+      <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
+      
+      <button
+        disabled={isLoading || !stripe || !elements}
+        id="submit"
+        className="w-full mt-6 bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-lg flex justify-center items-center gap-2"
+      >
+        {isLoading ? (
+            <>Processing...</>
+        ) : (
+            <>Pay £{totalAmount.toFixed(2)}</>
+        )}
+      </button>
+      
+      <div className="text-center text-xs text-gray-400 mt-4 flex items-center justify-center gap-1">
+         🔒 Payments processed securely by Stripe
+      </div>
+    </form>
+  );
+}
