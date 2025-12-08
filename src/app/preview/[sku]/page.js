@@ -47,29 +47,72 @@ export default function PreviewPage() {
   const handleAddToBasket = () => {
       if (!product) return;
 
+      // 1. Calculate Price
       const basePrice = parseFloat(product.price || "0");
       const envelopePrice = envelope === 'red' ? 0.50 : 0.00;
       const finalPrice = basePrice + envelopePrice;
 
+      // 2. Get Thumbnail Image
       const frontSlide = product.design_data?.slides?.front;
       const thumbUrl = frontSlide?.background_url || product.thumbnail_url || '/placeholder.png';
 
+      // --- 3. TRANSFORM DATA (THE FIX) ---
+      // We need to turn IDs (12345) into readable labels (Front, Back) and attach styles.
+      
+      const formattedInputs = [];
+
+      // Helper function to find which slide a zone belongs to
+      const findZoneLabel = (zoneId) => {
+          const slides = product.design_data?.slides || {};
+          
+          // Check Front
+          if (slides.front?.dynamic_zones?.find(z => String(z.id) === zoneId)) return "Front";
+          // Check Inside Left
+          if (slides.left_inner?.dynamic_zones?.find(z => String(z.id) === zoneId)) return "Inside Left";
+          // Check Inside Right
+          if (slides.right_inner?.dynamic_zones?.find(z => String(z.id) === zoneId)) return "Inside Right";
+          // Check Back
+          if (slides.back?.dynamic_zones?.find(z => String(z.id) === zoneId)) return "Back";
+
+          return "Text Zone"; // Fallback
+      };
+
+      // Loop through what the user typed
+      Object.keys(userInputs).forEach((zoneId) => {
+          const textValue = userInputs[zoneId];
+          
+          // Only add if user actually typed something
+          if (textValue && textValue.trim() !== "") {
+              const label = findZoneLabel(zoneId);
+              const style = userStyles[zoneId] || {}; // Get font/color for this specific zone
+
+              formattedInputs.push({
+                  zone_id: zoneId,
+                  label: label, // "Front", "Inside Right", etc.
+                  value: textValue, // "Happy Birthday!"
+                  fontFamily: style.fontFamily || 'Arial', // "Caveat", "Indie Flower"
+                  color: style.color || '#000000' // "#ff0000"
+              });
+          }
+      });
+
+      // 4. Create Cart Item with CLEAN Data
       const cartItem = {
         id: Date.now().toString(),
         product_id: product.id,
-        personalization_id: Date.now().toString(),
+        personalization_id: Date.now().toString(), // Unique ID for this specific design
         sku: product.sku,
         name: product.title,
         price: finalPrice,
         image: thumbUrl,
         qty: 1,
         custom_data: {     
-            inputs: userInputs,
-            styles: userStyles,
+            inputs: formattedInputs, // <--- Now containing Font, Color, and Label!
             envelope: envelope
         }
       };
 
+      // 5. Add & Redirect
       addToCart(cartItem); 
       localStorage.removeItem(`draft_${params.sku}`);
       router.push('/cart');
