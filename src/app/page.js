@@ -121,6 +121,31 @@ async function PageHome() {
         </div>
       </section>
 
+      {/* --- SECTION 2: TOP PICKS (RESTORED) --- */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl md:text-3xl font-extrabold text-black mb-16">
+            Our Top Picks
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-8 justify-items-center">
+            {topPicks.map((item, index) => (
+              <Link 
+                href={`/category/${item.link}`} 
+                key={index} 
+                className="w-full flex justify-center"
+              >
+                <div className="flex flex-col justify-center items-center bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer w-full max-w-[150px]">
+                  <div className="flex justify-center items-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-[#66A3A3]/20 to-[#66A3A3]/10 rounded-full mb-4 shadow-inner">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-sm md:text-base font-semibold text-gray-800 text-center">{item.title}</h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
     {/* --- SECTION 3: PROMO SPLIT --- */}
       <section className="py-10 px-6">
         <div className="max-w-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
