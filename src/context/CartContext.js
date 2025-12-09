@@ -6,85 +6,101 @@ const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
+  
+  // Stores: Name, Address, Phone, Label, AND Selected Delivery Speed
+  const [shippingAddress, setShippingAddress] = useState(null);
 
-  // 1. Load from Local Storage on mount
+  const [isLoaded, setIsLoaded] = useState(false); // Fixes Hydration errors
+
+  // 1. Load from Local Storage on Mount
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      try { setCartItems(JSON.parse(savedCart)); } catch (e) { console.error(e); }
+    if (typeof window !== "undefined") {
+      const savedCart = localStorage.getItem("cart");
+      const savedAddress = localStorage.getItem("shippingAddress");
+      
+      if (savedCart) {
+        try { setCartItems(JSON.parse(savedCart)); } catch (e) { console.error("Cart Parse Error:", e); }
+      }
+      if (savedAddress) {
+        try { setShippingAddress(JSON.parse(savedAddress)); } catch (e) { console.error("Address Parse Error:", e); }
+      }
+      setIsLoaded(true);
     }
   }, []);
 
-  // 2. Save to Local Storage whenever cart changes
+  // 2. Save Cart to Local Storage
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isLoaded && typeof window !== "undefined") {
+      localStorage.setItem("cart", JSON.stringify(cartItems));
+    }
+  }, [cartItems, isLoaded]);
 
-  // --- ADD TO CART ---
-  const addToCart = (newItem) => {
+  // 3. Save Address to Local Storage
+  useEffect(() => {
+    if (isLoaded && typeof window !== "undefined") {
+        if (shippingAddress) {
+            localStorage.setItem("shippingAddress", JSON.stringify(shippingAddress));
+        } else {
+            localStorage.removeItem("shippingAddress");
+        }
+    }
+  }, [shippingAddress, isLoaded]);
+
+  // --- CART FUNCTIONS ---
+
+  const addToCart = (product) => {
     setCartItems((prevItems) => {
-      // Check if item exists (Same Product ID + Same Personalization)
-      const existingIndex = prevItems.findIndex((item) => {
-        const isSameProduct = item.product_id === newItem.product_id;
-        // Compare personalization data deeply to differentiate "Safeer" vs "John" on same card
-        const isSameCustom = JSON.stringify(item.custom_data) === JSON.stringify(newItem.custom_data);
-        return isSameProduct && isSameCustom;
-      });
-
-      if (existingIndex > -1) {
-        // If exact match, increase quantity
-        const updated = [...prevItems];
-        updated[existingIndex].qty += newItem.qty;
-        return updated;
+      const existingItem = prevItems.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === product.id ? { ...item, qty: (item.qty || 1) + 1 } : item
+        );
+      } else {
+        return [...prevItems, { ...product, qty: 1 }];
       }
-      
-      // Else add new item
-      return [...prevItems, newItem];
     });
   };
 
-  // --- UPDATE QUANTITY ---
-  // This triggers the re-render that updates the Total Price automatically
-  const updateQuantity = (productId, customData, newQty) => {
-    if (newQty < 1) return; // Prevent going below 1
-
-    setCartItems((prev) =>
-      prev.map((item) => {
-        const isMatch = item.product_id === productId && JSON.stringify(item.custom_data) === JSON.stringify(customData);
-        return isMatch ? { ...item, qty: newQty } : item;
-      })
-    );
+  const removeFromCart = (productId) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId));
   };
 
-  // --- REMOVE ITEM ---
-  const removeFromCart = (productId, customData) => {
-    setCartItems((prev) =>
-      prev.filter((item) => 
-        !(item.product_id === productId && JSON.stringify(item.custom_data) === JSON.stringify(customData))
+  const updateQuantity = (productId, newQty) => {
+    if (newQty < 1) return; 
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productId ? { ...item, qty: newQty } : item
       )
     );
   };
 
-  const clearCart = () => setCartItems([]);
+  const clearCart = () => {
+      setCartItems([]);
+      setShippingAddress(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cart");
+        localStorage.removeItem("shippingAddress");
+      }
+  };
 
-  // --- AUTO-CALCULATE TOTALS ---
-  // This runs automatically every time 'cartItems' changes
-  const subtotal = cartItems.reduce((sum, item) => {
-    return sum + (parseFloat(item.price) * parseInt(item.qty || 1));
-  }, 0);
-
-  // You can add shipping logic here later if needed
+  // Calculate Subtotal (Items only)
+  const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.qty || 1)), 0);
+  
+  // NOTE: 'total' here is just Item Subtotal. 
+  // Grand Total (with shipping) is calculated in Delivery/Checkout using shippingAddress.delivery_option.price
   const total = subtotal; 
 
   return (
     <CartContext.Provider value={{ 
         cart: cartItems, 
-        addToCart, 
-        updateQuantity, 
-        removeFromCart, 
+        addToCart,         
+        updateQuantity,    
+        removeFromCart,    
         clearCart, 
         subtotal, 
-        total 
+        total,
+        shippingAddress,
+        setShippingAddress
     }}>
       {children}
     </CartContext.Provider>

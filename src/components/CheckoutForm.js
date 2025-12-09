@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext"; // Import Auth Context
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast"; 
 
@@ -10,6 +11,7 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
   const stripe = useStripe();
   const elements = useElements();
   const { cart, clearCart } = useCart();
+  const { token } = useAuth(); // Get token from Auth Context
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +26,7 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
     // 1. Confirm Payment with Stripe
     const result = await stripe.confirmPayment({
       elements,
-      redirect: "if_required", // Don't redirect, handle in JS
+      redirect: "if_required", // Important: Handle logic here, don't auto-redirect
     });
 
     if (result.error) {
@@ -55,28 +57,52 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
     const loadingToastId = toast.loading("Finalizing Order...");
 
     try {
-      const token = localStorage.getItem('auth_token');
+      // Get token from Context or Fallback to LocalStorage
+      const authToken = token || localStorage.getItem('auth_token');
 
-      // 2. Prepare Data for Laravel
+      // 2. Prepare Data for Laravel (Matches your OrderController validation)
       const orderPayload = {
+        // Map Cart Items
         items: cart.map(item => ({
-            id: item.product_id,
+            id: item.product_id || item.id,
             title: item.title || item.name,
-            sku: item.sku,
+            sku: item.sku || 'SKU-PENDING',
             qty: item.qty || 1,
             price: item.price,
-            size: "A5", // Default size, or get from custom_data
-            personalisation_inputs: item.custom_data
+            size: item.size || "A5", 
+            personalisation_inputs: item.custom_data || null
         })),
-        shipping_address: shippingDetails,
+
+        // Shipping Data
+        shipping_address: {
+            name: shippingDetails.name,
+            email: shippingDetails.email,
+            phone: shippingDetails.phone,
+            label: shippingDetails.label, // Home/Work
+            line1: shippingDetails.line1,
+            line2: shippingDetails.line2,
+            city: shippingDetails.city,
+            postcode: shippingDetails.postcode,
+            country: 'United Kingdom'
+        },
+
+        // Delivery Logic
+        delivery_type: shippingDetails.delivery_type, // 'to_self' or 'direct'
+        delivery_option: {
+             name: shippingDetails.delivery_option?.name || "Standard",
+             price: shippingDetails.delivery_option?.price || 0
+        },
+
+        // Financials
+        subtotal: totalAmount - (shippingDetails.delivery_option?.price || 0),
+        shipping_cost: shippingDetails.delivery_option?.price || 0,
+        total: totalAmount,
+
+        // Payment Info
         payment: {
             method: 'stripe',
             transaction_id: transactionId
-        },
-        delivery_type: 'to_self',
-        subtotal: totalAmount,
-        shipping_cost: 0,
-        total: totalAmount
+        }
       };
       
       // 3. Send to Laravel API
@@ -84,19 +110,28 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` 
+            // --- CRITICAL FIXES FOR CORS/REDIRECT ERROR ---
+            "Accept": "application/json", 
+            "Authorization": `Bearer ${authToken}` 
         },
         body: JSON.stringify(orderPayload),
       });
+
+      // Handle Non-200 Responses (Validation errors, etc.)
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Backend Validation Error:", errorData);
+        throw new Error(errorData.message || "Failed to save order");
+      }
 
       const data = await res.json();
 
       toast.dismiss(loadingToastId);
 
-      if (res.ok && data.success) {
-        clearCart();
-        toast.success(`Order #${data.order_number} Placed! Check email.`);
-        router.push("/"); // Redirect Home
+      if (data.success) {
+        clearCart(); // Clear Context
+        toast.success(`Order #${data.order_number} Placed!`);
+        router.push(`/`); 
       } else {
         toast.error("Payment received, but order saving failed.");
         console.error("Backend Error:", data);
@@ -105,7 +140,7 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
     } catch (err) {
       toast.dismiss(loadingToastId);
       console.error(err);
-      toast.error("Network error saving order.");
+      toast.error(err.message || "Network error saving order.");
     }
     
     setIsLoading(false);

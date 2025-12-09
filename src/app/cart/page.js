@@ -1,27 +1,30 @@
 "use client";
 import React from "react";
 import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/context/AuthContext"; // 1. Import Auth Context
+import { useAuth } from "@/context/AuthContext"; 
 import { useRouter } from "next/navigation";
 import Image from "next/image"; 
 
 const CartPage = () => {
   const { cart, updateQuantity, removeFromCart, subtotal, total } = useCart();
-  const { user } = useAuth(); // 2. Get User State
+  const { user } = useAuth(); 
   const router = useRouter();
 
   const totalItemsCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
 
-  // 3. New Checkout Handler
   const handleCheckout = () => {
     if (user) {
-      // User is logged in -> Go to Checkout
-      router.push("/checkout");
+      router.push("/delivery"); 
     } else {
-      // User is NOT logged in -> Go to Login
-      // Optional: Add ?redirect=/checkout so they come back after login
-      router.push("/auth/login?redirect=/checkout");
+      router.push("/auth/login?redirect=/delivery"); 
     }
+  };
+
+  // --- Helper to handle Quantity Updates safely ---
+  const handleQtyChange = (itemId, currentQty, change) => {
+    const newQty = currentQty + change;
+    if (newQty < 1) return; // Don't go below 1
+    updateQuantity(itemId, newQty);
   };
 
   return (
@@ -51,9 +54,10 @@ const CartPage = () => {
           
           {/* LEFT: Products List */}
           <div className="col-span-2 space-y-8">
-            {cart.map((item, index) => (
+            {cart.map((item) => (
               <div
-                key={`${item.product_id}-${index}`} 
+                // Use item.id (unique cart ID) as key
+                key={item.id} 
                 className="flex flex-col sm:flex-row items-start gap-6 border-b border-gray-100 pb-8 last:border-0"
               >
                 {/* Product Image */}
@@ -109,12 +113,35 @@ const CartPage = () => {
                 {/* Controls */}
                 <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-4 mt-4 sm:mt-0">
                     <span className="hidden sm:block text-xl font-bold text-gray-900">£{parseFloat(item.price).toFixed(2)}</span>
+                    
                     <div className="flex items-center border border-gray-300 rounded-lg bg-white">
-                      <button onClick={() => updateQuantity(item.product_id, item.custom_data, (item.qty || 1) - 1)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition">-</button>
+                      {/* Decrement */}
+                      <button 
+                        onClick={() => handleQtyChange(item.id, (item.qty || 1), -1)} 
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition"
+                        disabled={(item.qty || 1) <= 1}
+                      >
+                        -
+                      </button>
+                      
                       <span className="w-8 text-center font-semibold text-sm">{item.qty || 1}</span>
-                      <button onClick={() => updateQuantity(item.product_id, item.custom_data, (item.qty || 1) + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition">+</button>
+                      
+                      {/* Increment */}
+                      <button 
+                        onClick={() => handleQtyChange(item.id, (item.qty || 1), 1)} 
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 font-bold transition"
+                      >
+                        +
+                      </button>
                     </div>
-                    <button onClick={() => removeFromCart(item.product_id, item.custom_data)} className="text-red-500 text-xs font-bold hover:text-red-700 hover:underline transition">Remove Item</button>
+
+                    {/* Remove Item */}
+                    <button 
+                        onClick={() => removeFromCart(item.id)} 
+                        className="text-red-500 text-xs font-bold hover:text-red-700 hover:underline transition"
+                    >
+                        Remove Item
+                    </button>
                 </div>
               </div>
             ))}
@@ -141,7 +168,6 @@ const CartPage = () => {
                     <span>£{total.toFixed(2)}</span>
                 </div>
 
-                {/* 4. Use handleCheckout instead of router.push */}
                 <button
                     onClick={handleCheckout}
                     className="mt-4 w-full bg-[#66A3A3] hover:bg-[#588b8b] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-700/10 transition-all transform active:scale-95 flex justify-center items-center gap-2"

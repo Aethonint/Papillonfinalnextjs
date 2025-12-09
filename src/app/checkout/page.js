@@ -1,34 +1,24 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react"; // <--- Added useRef
+import { useEffect, useState, useRef } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "@/components/CheckoutForm";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 
-// Initialize Stripe
+// Initialize Stripe (Check if key exists to prevent crash)
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export default function CheckoutPage() {
-  const { cart, total } = useCart();
+  const { cart, total, shippingAddress } = useCart(); // Get Real Address
   const [clientSecret, setClientSecret] = useState("");
   const [error, setError] = useState(""); 
   const router = useRouter();
   
   // --- LOCK: Prevents infinite API calls ---
   const hasFetched = useRef(false);
-
-  // Dummy Shipping Data
-  const [shippingDetails, setShippingDetails] = useState({
-      name: "Test Customer",
-      email: "test@example.com",
-      line1: "123 Test Street",
-      city: "London",
-      postcode: "SW1A 1AA",
-      country: "UK"
-  });
 
   useEffect(() => {
     // 1. Validation Checks
@@ -37,8 +27,14 @@ export default function CheckoutPage() {
         setError("Cart total cannot be 0.");
         return;
     }
+    
+    // Redirect if they skipped the Delivery Page
+    if (!shippingAddress) {
+        router.push('/delivery');
+        return;
+    }
 
-    // --- CRITICAL FIX: Stop if already fetching or secret exists ---
+    // --- STOP IF ALREADY FETCHED ---
     if (hasFetched.current || clientSecret) return;
 
     const token = localStorage.getItem('auth_token');
@@ -63,7 +59,6 @@ export default function CheckoutPage() {
       .then(async (res) => {
         if (!res.ok) {
             const text = await res.text();
-            // Unlock so user can retry if it failed
             hasFetched.current = false;
             throw new Error(`Server Error: ${res.status} - ${text}`);
         }
@@ -83,7 +78,7 @@ export default function CheckoutPage() {
           setError(err.message); 
           hasFetched.current = false;
       });
-  }, [total, cart.length, clientSecret]);
+  }, [total, cart.length, clientSecret, shippingAddress]);
 
   // Handle empty cart
   if (cart.length === 0) {
@@ -104,24 +99,36 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-zinc-50 py-12 px-4">
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
         
-        {/* LEFT: Summary */}
+        {/* LEFT: Summary & Address */}
         <div>
            <h1 className="text-3xl font-bold mb-6 text-zinc-900">Checkout</h1>
+           
+           {/* Price Summary */}
            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6">
               <h3 className="font-bold text-lg mb-4 text-zinc-800">Total to Pay</h3>
               <p className="text-4xl font-black text-gray-900">£{total.toFixed(2)}</p>
            </div>
+
+           {/* Shipping Address Summary */}
+           {shippingAddress && (
+             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6 text-sm text-gray-600">
+                <div className="flex justify-between items-center mb-4">
+                   <h3 className="font-bold text-lg text-zinc-800">Shipping To</h3>
+                   <button onClick={() => router.push('/delivery')} className="text-[#66A3A3] font-bold hover:underline">Edit</button>
+                </div>
+                <p className="font-bold text-black">{shippingAddress.name}</p>
+                <p>{shippingAddress.line1}</p>
+                {shippingAddress.line2 && <p>{shippingAddress.line2}</p>}
+                <p>{shippingAddress.city}, {shippingAddress.postcode}</p>
+                <p>{shippingAddress.country}</p>
+             </div>
+           )}
            
-           {/* ERROR MESSAGE DISPLAY */}
+           {/* Error Display */}
            {error && (
                <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-sm font-bold shadow-sm">
                    ⚠️ {error}
-                   <button 
-                     onClick={() => window.location.reload()} 
-                     className="block mt-2 text-xs underline hover:text-red-800"
-                   >
-                     Try Refreshing
-                   </button>
+                   <button onClick={() => window.location.reload()} className="block mt-2 text-xs underline hover:text-red-800">Try Refreshing</button>
                </div>
            )}
         </div>
@@ -132,11 +139,10 @@ export default function CheckoutPage() {
               <Elements options={options} stripe={stripePromise}>
                 <CheckoutForm 
                     totalAmount={total} 
-                    shippingDetails={shippingDetails} 
+                    shippingDetails={shippingAddress} // Pass real address to form
                 />
               </Elements>
             ) : (
-                // Loading State (Only shows if no error)
                 !error && (
                     <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl shadow-sm border border-gray-200">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#66A3A3] mb-4"></div>
