@@ -53,7 +53,7 @@ export default function ForgotPasswordModal({ open, onClose }) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8000/api/reset-password", {
+      const res = await fetch("https://papillondashboard.devshop.site/api/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({ 

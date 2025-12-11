@@ -55,7 +55,7 @@ function VerifyContent() {
     
     setResending(true);
     try {
-        const res = await fetch("http://localhost:8000/api/resend-otp", {
+        const res = await fetch("https://papillondashboard.devshop.site/api/resend-otp", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify({ email }),

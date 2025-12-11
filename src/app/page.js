@@ -12,7 +12,7 @@ import { GiRing } from 'react-icons/gi';
 // 1. FETCH BIRTHDAY CARDS (Section 4)
 async function getBirthdayCards() {
   try {
-    const res = await fetch('http://localhost:8000/api/products/category/birthday', { 
+    const res = await fetch('https://papillondashboard.devshop.site/api/products/category/birthday', { 
       next: { revalidate: 60 } 
     });
     if (!res.ok) return null;
@@ -25,7 +25,7 @@ async function getBirthdayCards() {
 // 2. FETCH LATEST PRODUCTS (Section 5 - Slider)
 async function getLatestProducts() {
   try {
-    const res = await fetch('http://localhost:8000/api/products', { 
+    const res = await fetch('https://papillondashboard.devshop.site/api/products', { 
       next: { revalidate: 60 } 
     });
     if (!res.ok) return null;

@@ -22,7 +22,7 @@ export default function PreviewPage() {
     if (!params.sku) return;
     
     // Fetch product details
-    fetch(`http://localhost:8000/api/product/${params.sku}`)
+    fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
       .then((res) => res.json())
       .then((data) => setProduct(data))
       .catch(err => console.error("Failed to load product", err));
