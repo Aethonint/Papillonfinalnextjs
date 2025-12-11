@@ -31,7 +31,6 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
 
     if (result.error) {
       // HANDLE EDGE CASE: "PaymentIntent unexpected state"
-      // This happens if payment succeeded but UI re-triggered submission
       if (
         result.error.payment_intent &&
         result.error.payment_intent.status === "succeeded"
@@ -60,9 +59,8 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
       // Get token from Context or Fallback to LocalStorage
       const authToken = token || localStorage.getItem('auth_token');
 
-      // 2. Prepare Data for Laravel (Matches your OrderController validation)
+      // 2. Prepare Data for Laravel
       const orderPayload = {
-        // Map Cart Items
         items: cart.map(item => ({
             id: item.product_id || item.id,
             title: item.title || item.name,
@@ -73,12 +71,11 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
             personalisation_inputs: item.custom_data || null
         })),
 
-        // Shipping Data
         shipping_address: {
             name: shippingDetails.name,
             email: shippingDetails.email,
             phone: shippingDetails.phone,
-            label: shippingDetails.label, // Home/Work
+            label: shippingDetails.label,
             line1: shippingDetails.line1,
             line2: shippingDetails.line2,
             city: shippingDetails.city,
@@ -86,19 +83,16 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
             country: 'United Kingdom'
         },
 
-        // Delivery Logic
-        delivery_type: shippingDetails.delivery_type, // 'to_self' or 'direct'
+        delivery_type: shippingDetails.delivery_type,
         delivery_option: {
              name: shippingDetails.delivery_option?.name || "Standard",
              price: shippingDetails.delivery_option?.price || 0
         },
 
-        // Financials
         subtotal: totalAmount - (shippingDetails.delivery_option?.price || 0),
         shipping_cost: shippingDetails.delivery_option?.price || 0,
         total: totalAmount,
 
-        // Payment Info
         payment: {
             method: 'stripe',
             transaction_id: transactionId
@@ -110,14 +104,12 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
-            // --- CRITICAL FIXES FOR CORS/REDIRECT ERROR ---
             "Accept": "application/json", 
             "Authorization": `Bearer ${authToken}` 
         },
         body: JSON.stringify(orderPayload),
       });
 
-      // Handle Non-200 Responses (Validation errors, etc.)
       if (!res.ok) {
         const errorData = await res.json();
         console.error("Backend Validation Error:", errorData);
@@ -129,9 +121,13 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
       toast.dismiss(loadingToastId);
 
       if (data.success) {
-        clearCart(); // Clear Context
-        toast.success(`Order #${data.order_number} Placed!`);
-        router.push(`/`); 
+        clearCart(); 
+        
+        // --- UPDATED SUCCESS LOGIC HERE ---
+        toast.success(`Order Placed Successfully! Order #${data.order_number}`);
+        router.push(`/account/orders`); 
+        // ----------------------------------
+
       } else {
         toast.error("Payment received, but order saving failed.");
         console.error("Backend Error:", data);
@@ -150,7 +146,6 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
       <h2 className="text-xl font-bold mb-4 text-zinc-900">Payment Details</h2>
       
-      {/* Stripe Credit Card Element */}
       <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
       
       <button

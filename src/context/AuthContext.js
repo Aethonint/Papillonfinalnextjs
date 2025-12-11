@@ -11,17 +11,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // 1. Load User on Mount (Check LocalStorage)
+  // 1. Load User on Mount
   useEffect(() => {
     const storedToken = localStorage.getItem("auth_token");
     const storedUser = localStorage.getItem("auth_user");
 
-    if (storedToken && storedUser) {
+    if (storedToken) {
       setToken(storedToken);
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse user data", e);
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse user data", e);
+        }
       }
     }
     setLoading(false);
@@ -35,11 +37,37 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("auth_user", JSON.stringify(userData));
   };
 
-  // 3. Logout Function
+  // 3. NEW: Refresh User Function (Fixes your issue)
+  // This fetches the latest data from DB and updates the UI immediately
+  const refreshUser = async () => {
+    const currentToken = token || localStorage.getItem("auth_token");
+    if (!currentToken) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/api/user", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${currentToken}`,
+          "Accept": "application/json",
+        },
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        // Update State (Instantly updates UI)
+        setUser(updatedUser);
+        // Update Storage (Persists on reload)
+        localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  };
+
+  // 4. Logout Function
   const logout = async () => {
     try {
         if (token) {
-            // Optional: Call API to invalidate token on server
             await fetch("http://localhost:8000/api/logout", {
                 method: "POST",
                 headers: { 
@@ -52,7 +80,6 @@ export const AuthProvider = ({ children }) => {
         console.error("Logout failed", error);
     }
 
-    // Clear State
     setUser(null);
     setToken(null);
     localStorage.removeItem("auth_token");
@@ -61,7 +88,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

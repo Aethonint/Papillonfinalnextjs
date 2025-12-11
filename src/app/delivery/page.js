@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/context/AuthContext"; // Importing your Auth Context
-import { FaTruck, FaUser, FaHome, FaBriefcase, FaMobileAlt, FaCheckCircle } from "react-icons/fa"; 
+import { useAuth } from "@/context/AuthContext"; 
+import { FaTruck, FaUser, FaHome, FaBriefcase, FaMobileAlt, FaCheckCircle, FaMapMarkerAlt } from "react-icons/fa";
+import { Loader2 } from "lucide-react"; // Import Loader
+import toast, { Toaster } from "react-hot-toast"; // Import Toast
 
 const DELIVERY_OPTIONS = [
   { id: 'standard', name: 'Royal Mail 2nd Class', time: '2–3 Working Days', price: 0 },
@@ -14,14 +16,13 @@ const DELIVERY_OPTIONS = [
 
 export default function DeliveryPage() {
   const router = useRouter();
-  
-  // 1. Get User and Token from AuthContext
   const { user, token } = useAuth(); 
-  
   const { setShippingAddress, cart, subtotal } = useCart();
   
   const [mode, setMode] = useState("self"); 
   const [selectedDelivery, setSelectedDelivery] = useState(DELIVERY_OPTIONS[0]);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading State
   
   const [form, setForm] = useState({
     name: "",
@@ -37,14 +38,32 @@ export default function DeliveryPage() {
 
   const finalTotal = subtotal + selectedDelivery.price;
 
-  // 2. Pre-fill Form if User is Logged In
+  // 1. Fetch Saved Addresses
+  useEffect(() => {
+    async function fetchAddresses() {
+        if (!token) return;
+        try {
+            const res = await fetch("http://localhost:8000/api/addresses", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSavedAddresses(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch addresses", error);
+        }
+    }
+    fetchAddresses();
+  }, [token]);
+
+  // 2. Pre-fill Form Logic
   useEffect(() => {
     if (mode === "self" && user) {
         setForm(prev => ({
             ...prev,
             name: user.name || "",
             email: user.email || "",
-            // If your DB uses 'phone' or 'phone_number', adjust here
             phone: user.phone || user.phone_number || "" 
         }));
     } else if (mode === "direct") {
@@ -52,7 +71,21 @@ export default function DeliveryPage() {
     }
   }, [mode, user]);
 
-  // Phone Masking
+  // 3. Auto-Fill Function
+  const applySavedAddress = (addr) => {
+    setForm(prev => ({
+        ...prev,
+        line1: addr.line1,
+        line2: addr.line2 || "",
+        city: addr.city,
+        postcode: addr.postcode,
+        name: addr.full_name || prev.name,
+        phone: addr.phone || prev.phone, // Auto-fill Phone
+        email: addr.email || prev.email   // Auto-fill Email
+    }));
+    toast.success("Address applied!");
+  };
+
   const handlePhoneChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); 
     if (value.length > 11) value = value.slice(0, 11);
@@ -60,11 +93,17 @@ export default function DeliveryPage() {
     setForm({ ...form, phone: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
+    // Basic Validation
+    if (!form.name || !form.email || !form.line1 || !form.city || !form.postcode) {
+        toast.error("Please fill in all required fields.");
+        setIsSubmitting(false);
+        return;
+    }
     
-    // 3. Save to Context (We do NOT fetch here to avoid CORS issues prematurely)
-    // We bundle everything so the Checkout page can grab it + the token later.
     const dataToSave = {
         ...form, 
         delivery_type: mode === "self" ? "to_self" : "direct",
@@ -74,14 +113,25 @@ export default function DeliveryPage() {
         }
     };
 
+    // Save to Context
     setShippingAddress(dataToSave);
-    
-    // Redirect to Checkout
-    router.push("/checkout");
+
+    // UX Feedback
+    toast.loading("Processing delivery details...", { duration: 1500 });
+
+    // Slight delay to show the loading state, then redirect
+    setTimeout(() => {
+        toast.dismiss();
+        toast.success("Proceeding to Payment");
+        router.push("/checkout");
+    }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-zinc-50 py-12 px-4">
+      {/* Toast Notification Container */}
+      <Toaster position="top-center" />
+
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* --- LEFT COLUMN: FORM --- */}
@@ -108,7 +158,7 @@ export default function DeliveryPage() {
                         <div className="p-3 bg-white rounded-full shadow-sm text-[#66A3A3]"><FaTruck size={20}/></div>
                         <div>
                             <h3 className="font-bold text-gray-900">Send it Directly to Them</h3>
-                            <p className="text-sm text-gray-500">We'll get it sorted and posted right to their door.</p>
+                           <p className="text-sm text-gray-500">We&apos;ll get it sorted and posted right to their door.</p>
                         </div>
                         <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center ${mode === "direct" ? "border-[#66A3A3]" : "border-gray-300"}`}>
                             {mode === "direct" && <div className="w-2.5 h-2.5 bg-[#66A3A3] rounded-full"></div>}
@@ -116,7 +166,7 @@ export default function DeliveryPage() {
                     </label>
                 </div>
 
-                {/* Delivery Speed Options */}
+                {/* Delivery Speed */}
                 <h3 className="font-bold text-lg mb-4">Choose Delivery Speed</h3>
                 <div className="flex flex-col gap-3 mb-8">
                     {DELIVERY_OPTIONS.map((option) => (
@@ -140,6 +190,35 @@ export default function DeliveryPage() {
                         </label>
                     ))}
                 </div>
+
+                {/* --- SAVED ADDRESSES SECTION --- */}
+                {savedAddresses.length > 0 && (
+                    <div className="mb-8">
+                        <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                            <FaMapMarkerAlt className="text-[#66A3A3]" /> Select a Saved Address
+                        </h3>
+                        <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                            {savedAddresses.map((addr) => (
+                                <div 
+                                    key={addr.id}
+                                    onClick={() => applySavedAddress(addr)}
+                                    className="min-w-[200px] p-4 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer hover:border-[#66A3A3] hover:bg-[#E0F2F2] transition-all group relative"
+                                >
+                                    <p className="font-bold text-sm text-gray-800 group-hover:text-[#66A3A3] mb-1">{addr.full_name}</p>
+                                    <p className="text-xs text-gray-500 truncate">{addr.line1}</p>
+                                    <p className="text-xs text-gray-500 mb-1">{addr.city}, {addr.postcode}</p>
+                                    
+                                    {/* Display Phone on Card */}
+                                    {addr.phone && (
+                                        <p className="text-[10px] text-[#66A3A3] font-medium flex items-center gap-1">
+                                            <FaMobileAlt /> {addr.phone}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Address Form */}
                 <form id="delivery-form" onSubmit={handleSubmit} className="space-y-4">
@@ -201,7 +280,7 @@ export default function DeliveryPage() {
                 <div className="space-y-2 text-sm text-zinc-600">
                     <div className="flex justify-between"><span>Subtotal</span><span>£{subtotal.toFixed(2)}</span></div>
                     <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2">Delivery <span className="text-[10px] bg-gray-100 px-1 rounded border border-gray-200">{selectedDelivery.id === 'special' ? 'Next Day' : 'Standard'}</span></span>
+                        <span className="flex items-center gap-2">Delivery <span className="text-[10px] bg-gray-100 px-1 rounded border border-gray-200">{selectedDelivery.id === 'next_day' ? 'Next Day' : 'Standard'}</span></span>
                         <span className={selectedDelivery.price === 0 ? "text-green-600 font-medium" : "text-zinc-800"}>{selectedDelivery.price === 0 ? "Free" : `£${selectedDelivery.price.toFixed(2)}`}</span>
                     </div>
                 </div>
@@ -216,10 +295,19 @@ export default function DeliveryPage() {
                 <button 
                     type="submit" 
                     form="delivery-form" 
-                    className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-zinc-800 transition-all shadow-lg flex justify-between px-6 items-center group"
+                    disabled={isSubmitting} // Disable when submitting
+                    className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-zinc-800 transition-all shadow-lg flex justify-between px-6 items-center group disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                    <span>Proceed to Pay</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    {isSubmitting ? (
+                        <div className="flex items-center justify-center w-full gap-2">
+                            <Loader2 className="animate-spin" /> Processing...
+                        </div>
+                    ) : (
+                        <>
+                            <span>Proceed to Pay</span>
+                            <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        </>
+                    )}
                 </button>
                 
                 <p className="text-xs text-center text-gray-400 mt-4 flex items-center justify-center gap-1">

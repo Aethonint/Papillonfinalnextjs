@@ -14,6 +14,7 @@ import {
   faStar,
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import { User as UserIcon, ShoppingBag, Edit3, LogOut as LogoutIcon } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 
@@ -66,37 +67,80 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
         <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
            
            {/* --- 4. AUTHENTICATION LOGIC START --- */}
-           {user ? (
-             // IF LOGGED IN: Show Name + Hover Dropdown
-             <div className="relative group cursor-pointer flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-               <User size={20} />
-               <span className="hidden md:inline text-xs font-bold text-[#66A3A3]">
-                 {user.name || "My Account"}
-               </span>
-               
-               {/* User Dropdown Menu */}
-               <div className="absolute top-full right-0 pt-2 w-48 hidden group-hover:block z-50">
-                 <div className="bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                      <p className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Signed in as</p>
-                      <p className="text-sm font-bold text-gray-700 truncate">{user.email}</p>
-                    </div>
-                    <button 
-                      onClick={logout}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"
-                    >
-                      <LogOut size={16} /> Logout
-                    </button>
-                 </div>
-               </div>
-             </div>
-           ) : (
-             // IF LOGGED OUT: Show Sign In Link
-             <Link href="/auth/login" className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
-                <User size={20} /> 
-                <span className="hidden md:inline text-xs">Sign In</span>
-             </Link>
-           )}
+{/* --- 4. AUTHENTICATION LOGIC START --- */}
+{user ? (
+  <div className="relative group flex flex-col items-center cursor-pointer">
+
+    {/* TOP ICON + NAME */}
+    <div className="flex flex-col items-center gap-1 transition-all duration-200 hover:text-[#66A3A3]">
+      <User size={20} />
+      <span className="hidden md:inline text-xs font-semibold text-[#66A3A3]">
+        {user.name || "My Account"}
+      </span>
+    </div>
+
+    {/* DROPDOWN MENU */}
+    <div className="absolute right-0 top-8 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                    transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0">
+
+      <div className="bg-white border border-gray-100 shadow-2xl rounded-2xl overflow-hidden">
+
+        {/* USER INFO HEADER */}
+        <div className="px-5 py-4 bg-gradient-to-r from-[#66A3A3] to-[#4f8383] text-white">
+          <p className="text-[11px] uppercase tracking-wide opacity-90">Signed in as</p>
+          <p className="font-semibold truncate">{user.email}</p>
+        </div>
+
+        {/* MENU ITEMS */}
+        <div className="py-2">
+          <Link
+            href="/account"
+            className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            <UserIcon size={16} className="text-[#66A3A3]" />
+            My Profile
+          </Link>
+
+          <Link
+            href="/account/orders"
+            className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            <ShoppingBag size={16} className="text-[#66A3A3]" />
+            Order History
+          </Link>
+
+          <Link
+            href="/account/edit"
+            className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+          >
+            <Edit3 size={16} className="text-[#66A3A3]" />
+            Edit Profile
+          </Link>
+        </div>
+
+        {/* LOGOUT BUTTON */}
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50 font-medium transition"
+        >
+          <LogoutIcon size={16} />
+
+          Sign Out
+        </button>
+
+      </div>
+    </div>
+  </div>
+) : (
+  <Link
+    href="/auth/login"
+    className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition"
+  >
+    <User size={20} />
+    <span className="hidden md:inline text-xs">Sign In</span>
+  </Link>
+)}
+
            {/* --- AUTHENTICATION LOGIC END --- */}
 
            <Link href="/cart" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
