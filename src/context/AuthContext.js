@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     if (!currentToken) return;
 
     try {
-      const res = await fetch("https://papillondashboard.devshop.site/api/user", {
+      const res = await fetch("http://localhost:8000/api/user", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${currentToken}`,
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
         if (token) {
-            await fetch("https://papillondashboard.devshop.site/api/logout", {
+            await fetch("http://localhost:8000/api/logout", {
                 method: "POST",
                 headers: { 
                     "Authorization": `Bearer ${token}`,

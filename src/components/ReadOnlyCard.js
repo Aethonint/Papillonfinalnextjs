@@ -12,18 +12,23 @@ const ProtectedImage = ({ url }) => {
   );
 };
 
-// --- 2. HELPER: STATIC TEXT ZONE ---
+// --- 2. HELPER: STATIC TEXT ZONE (FIXED ALIGNMENT) ---
 const StaticTextZone = ({ zone, value, userStyle }) => {
-  // Determine Font
+  // 1. Determine Font & Color
   const activeFont = userStyle?.fontFamily || (zone.fontFamily ? zone.fontFamily.replace(/['"]/g, "").split(",")[0] : "Arial");
   const activeColor = userStyle?.color || zone.color || "#000";
   const fontSize = zone.fontSize || 32;
   
-  // Logic to handle Title vs Message Body alignment
-  const isMessageBody = zone.height > 150;
-  const textAlign = zone.textAlign || (isMessageBody ? 'left' : 'center');
-  const justifyContent = isMessageBody ? 'flex-start' : 'center';
-  const padding = isMessageBody ? '15px' : '0px';
+  // 2. Alignment Logic (Updated)
+  // We prioritize the User's choice or the Zone's default. 
+  // We only default to 'center' if nothing is defined.
+  const textAlign = userStyle?.textAlign || zone.textAlign || 'center';
+  
+  // Map textAlign to Flexbox justifyContent
+  const justifyContent = 
+    textAlign === 'left' ? 'flex-start' : 
+    textAlign === 'right' ? 'flex-end' : 
+    'center';
 
   return (
     <div
@@ -35,25 +40,27 @@ const StaticTextZone = ({ zone, value, userStyle }) => {
         height: `${zone.height}px`,
         transform: `rotate(${zone.rotation}deg)`, 
         zIndex: 20,
+        
+        // Flexbox centering
         display: "flex", 
-        alignItems: "center", 
-        justifyContent: justifyContent,
-        padding: padding,
+        flexDirection: "column", // Stack text lines vertically
+        justifyContent: "center", // Vertically center the block of text
+        alignItems: justifyContent, // Horizontally align the block (Left/Center/Right)
+        
         fontFamily: activeFont, 
         fontSize: `${fontSize}px`, 
         fontWeight: zone.fontWeight || "normal",
         color: activeColor, 
         textAlign: textAlign, 
-        whiteSpace: "pre-wrap",
+        
+        // Text Wrapping Fixes
+        whiteSpace: "pre-wrap",   // Respects line breaks
+        wordBreak: "break-word",  // Prevents long words from overflowing
         lineHeight: 1.3,
-        pointerEvents: "none" // Read Only
+        pointerEvents: "none",
+        padding: "5px" // Small padding to prevent cutting off italic fonts
       }}
     >
-      {/* LOGIC: 
-         1. If user input (value) exists, use it (Dynamic).
-         2. Else use zone.text (Static/Placeholder).
-         3. Fallback to empty.
-      */}
       {value || zone.text || ""}
     </div>
   );
@@ -64,25 +71,23 @@ const PageContent = ({ slide, userInputs, userStyles }) => (
     <>
         <ProtectedImage url={slide?.background_url} />
         
-        {/* ✅ FIXED: Render Static Zones (Emojis AND Text) */}
+        {/* Render Static Zones */}
         {slide?.static_zones?.map((zone) => (
             zone.type === 'emoji' ? (
-                // Render Emoji
                 <div key={zone.id} style={{ position: "absolute", left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.width}px`, height: `${zone.height}px`, transform: `rotate(${zone.rotation}deg)`, fontSize: `${(zone.fontSize || zone.height) * 0.8}px`, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 5 }}>
                     {zone.emoji}
                 </div>
             ) : (
-                // Render Static Text using the helper component
                 <StaticTextZone 
                     key={zone.id} 
                     zone={zone} 
-                    value="" // No user input for static zones
-                    userStyle={{}} // No user style for static zones
+                    value="" 
+                    userStyle={{}} 
                 />
             )
         ))}
 
-        {/* Render Dynamic Zones (User Inputs) */}
+        {/* Render Dynamic Zones */}
         {slide?.dynamic_zones?.map((zone) => (
             <StaticTextZone 
                 key={zone.id} 
@@ -115,16 +120,14 @@ export default function ReadOnlyCard({ product, viewState, userInputs, userStyle
     return () => window.removeEventListener("resize", handleResize);
   }, [product, viewState]);
 
-  // ✅ FIXED: Load Fonts for BOTH Static and Dynamic Zones
+  // Load Fonts
   useEffect(() => {
     if (!product || !product.design_data) return;
     const slides = product.design_data.slides;
     if (!slides) return;
 
-    // Helper to extract all zones from a slide
     const getZones = (slide) => [ ...(slide?.dynamic_zones || []), ...(slide?.static_zones || []) ];
 
-    // Collect all zones from all slides
     const allZones = [
         ...getZones(slides.front), 
         ...getZones(slides.left_inner), 

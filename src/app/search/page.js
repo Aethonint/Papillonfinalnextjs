@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-// 1. IMPORT YOUR COMPONENT
+// 1. IMPORT YOUR COMPONENT (Same as Category Page)
 import DynamicThumbnail from "@/components/DynamicThumbnail"; 
 
-// Function to fetch data from your Laravel API
-async function getCategoryProducts(slug) {
+// Function to fetch search results from your Laravel API
+async function getSearchResults(query) {
   try {
-    const res = await fetch(`http://localhost:8000/api/products/category/${slug}`, {
+    // We use the same API endpoint we fixed earlier
+    const res = await fetch(`http://localhost:8000/api/products?search=${query}`, {
       cache: "no-store", 
     });
 
@@ -14,42 +15,34 @@ async function getCategoryProducts(slug) {
 
     return res.json();
   } catch (error) {
-    console.error("Error fetching category:", error);
+    console.error("Error fetching search results:", error);
     return null;
   }
 }
 
-export default async function CategoryPage({ params }) {
-  // Fix for Next.js 15: Await params
-  const { slug } = await params;
+export default async function SearchPage({ searchParams }) {
+  // Fix for Next.js 15: Await searchParams
+  const { q } = await searchParams;
+  
+  // If no query, just return empty
+  if (!q) return null;
 
-  const data = await getCategoryProducts(slug);
-
-  if (!data) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-stone-50">
-        <h1 className="text-2xl font-bold text-gray-800">Category Not Found</h1>
-        <Link href="/" className="text-[#66A3A3] hover:underline mt-4">
-          Return Home
-        </Link>
-      </div>
-    );
-  }
-
-  const { category, products } = data;
-  const productList = products.data || []; 
+  const data = await getSearchResults(q);
+  
+  // Handle Laravel Pagination (data.data) or simple array
+  const productList = data?.data || [];
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-slate-800 pb-20">
       
-      {/* 1. Category Header */}
-      <div className="bg-[#9DCDCD] text-white py-12 md:py-20 relative overflow-hidden shadow-md">
+      {/* 1. Search Header (Styled like Category Header) */}
+      <div className="bg-[#9DCDCD] text-white py-12 md:py-16 relative overflow-hidden shadow-md">
         <div className="container mx-auto px-4 relative z-10 text-center">
-            <h1 className="text-4xl md:text-6xl font-black capitalize tracking-tight mb-4">
-            {category.name}
+            <h1 className="text-3xl md:text-5xl font-black capitalize tracking-tight mb-2">
+               Search Results
             </h1>
-            <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
-            {category.description || `Discover our unique collection of ${category.name} cards.`}
+            <p className="text-lg opacity-90 max-w-2xl mx-auto">
+               Showing results for <span className="font-bold underline">"{q}"</span>
             </p>
         </div>
         
@@ -65,7 +58,7 @@ export default async function CategoryPage({ params }) {
         </Link>
       </div>
 
-      {/* 3. Product Grid */}
+      {/* 3. Product Grid (EXACT COPY OF CATEGORY LOGIC) */}
       <div className="container mx-auto px-4">
         {productList.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -74,8 +67,7 @@ export default async function CategoryPage({ params }) {
               // 2. PREPARE PROPS FOR DYNAMIC THUMBNAIL
               const frontSlide = product.design_data?.slides?.front;
               
-              // ✅ CRITICAL UPDATE: Merge Static + Dynamic Zones
-              // This grabs the static text (like "Merry Christmas") AND dynamic placeholders
+              // ✅ Merge Static + Dynamic Zones (Same as Category Page)
               const staticZones = frontSlide?.static_zones || [];
               const dynamicZones = frontSlide?.dynamic_zones || [];
               const allZones = [...staticZones, ...dynamicZones];
@@ -83,7 +75,7 @@ export default async function CategoryPage({ params }) {
               const thumbnailProps = {
                   id: product.id,
                   sku: product.sku,
-                  title: product.title,
+                  title: product.title, // or product.name depending on API
                   // Use front background if available, else thumbnail, else placeholder
                   thumbnail_url: frontSlide?.background_url || product.thumbnail_url || "/placeholder.png",
                   canvas_settings: product.canvas_settings,
@@ -127,8 +119,14 @@ export default async function CategoryPage({ params }) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-             <h3 className="text-xl font-bold text-gray-400 mt-4">No products found here yet.</h3>
-             <p className="text-gray-400">We are adding new designs to {category.name} soon!</p>
+             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
+                <ArrowLeft size={24} />
+             </div>
+             <h3 className="text-xl font-bold text-gray-400">No cards found for "{q}"</h3>
+             <p className="text-gray-400 mb-6">Try checking your spelling or use a different keyword.</p>
+             <Link href="/" className="px-6 py-2 bg-[#66A3A3] text-white rounded-full font-bold hover:bg-[#558b8b] transition-colors">
+               Browse All Categories
+             </Link>
           </div>
         )}
       </div>

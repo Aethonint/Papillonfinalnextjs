@@ -229,7 +229,7 @@ export default function EditorPage() {
     if (!params.sku) return;
 
     const timer = setTimeout(() => {
-        fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
+        fetch(`http://localhost:8000/api/product/${params.sku}`)
         .then((res) => res.json())
         .then((data) => {
             setProduct(data);

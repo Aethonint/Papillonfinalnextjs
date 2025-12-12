@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Heart, User } from "lucide-react";
+import { useRouter } from "next/navigation"; // <--- 1. Import Router
+import { ShoppingCart, Heart, User, Search } from "lucide-react"; // Added Search Icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useAuth } from "@/context/AuthContext"; // Import Auth
-import { LogOut } from "lucide-react"; // Import Logout Icon
+import { useAuth } from "@/context/AuthContext"; 
 import {
   faGift,
   faBirthdayCake,
@@ -17,23 +17,29 @@ import {
 import { User as UserIcon, ShoppingBag, Edit3, LogOut as LogoutIcon } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
-
-
 export default function Header() {
-  const { user, logout } = useAuth(); // <--- ADD THIS LINE
+  const { user, logout } = useAuth(); 
+  const { cart } = useCart();
+  const router = useRouter(); // <--- 2. Initialize Router
 
-const { cart } = useCart();
-const cartCount = cart.reduce((a, b) => a + b.qty, 0);
-
+  const cartCount = cart.reduce((a, b) => a + b.qty, 0);
 
   const [openMenu, setOpenMenu] = useState(null);
   const [navItems, setNavItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(""); // <--- 3. Search State
+
+  // --- Search Handler ---
+  const handleSearch = (e) => {
+    if (e.key === "Enter" && searchQuery.trim() !== "") {
+       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   useEffect(() => {
     async function fetchMenu() {
       try {
-        const res = await fetch("https://papillondashboard.devshop.site/api/header-menu");
+        const res = await fetch("http://localhost:8000/api/header-menu");
         if (!res.ok) throw new Error("Failed to fetch menu");
         const data = await res.json();
         setNavItems(data);
@@ -54,94 +60,98 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
           <Image src="/logo/newlogo.png" alt="Papillon Cards" width={100} height={70} className="object-contain" />
         </Link>
 
+        {/* --- SEARCH BAR SECTION --- */}
         <div className="flex-1 max-w-xl">
           <div className="relative">
             <input
               type="text"
-              placeholder="Search Cards"
+              placeholder="Search Cards..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch} // <--- Triggers on Enter Key
               className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 px-4 pl-10 focus:border-[#66A3A3] focus:ring-1 focus:ring-[#66A3A3] focus:bg-white focus:outline-none transition-all"
             />
+            {/* Search Icon inside Input */}
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+               <Search size={18} />
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
            
-           {/* --- 4. AUTHENTICATION LOGIC START --- */}
-{/* --- 4. AUTHENTICATION LOGIC START --- */}
-{user ? (
-  <div className="relative group flex flex-col items-center cursor-pointer">
+          {/* --- AUTHENTICATION LOGIC --- */}
+          {user ? (
+            <div className="relative group flex flex-col items-center cursor-pointer">
 
-    {/* TOP ICON + NAME */}
-    <div className="flex flex-col items-center gap-1 transition-all duration-200 hover:text-[#66A3A3]">
-      <User size={20} />
-      <span className="hidden md:inline text-xs font-semibold text-[#66A3A3]">
-        {user.name || "My Account"}
-      </span>
-    </div>
+              {/* TOP ICON + NAME */}
+              <div className="flex flex-col items-center gap-1 transition-all duration-200 hover:text-[#66A3A3]">
+                <User size={20} />
+                <span className="hidden md:inline text-xs font-semibold text-[#66A3A3]">
+                  {user.name || "My Account"}
+                </span>
+              </div>
 
-    {/* DROPDOWN MENU */}
-    <div className="absolute right-0 top-8 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible
-                    transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0">
+              {/* DROPDOWN MENU */}
+              <div className="absolute right-0 top-8 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                              transition-all duration-300 z-50 transform translate-y-2 group-hover:translate-y-0">
 
-      <div className="bg-white border border-gray-100 shadow-2xl rounded-2xl overflow-hidden">
+                <div className="bg-white border border-gray-100 shadow-2xl rounded-2xl overflow-hidden">
 
-        {/* USER INFO HEADER */}
-        <div className="px-5 py-4 bg-gradient-to-r from-[#66A3A3] to-[#4f8383] text-white">
-          <p className="text-[11px] uppercase tracking-wide opacity-90">Signed in as</p>
-          <p className="font-semibold truncate">{user.email}</p>
-        </div>
+                  {/* USER INFO HEADER */}
+                  <div className="px-5 py-4 bg-gradient-to-r from-[#66A3A3] to-[#4f8383] text-white">
+                    <p className="text-[11px] uppercase tracking-wide opacity-90">Signed in as</p>
+                    <p className="font-semibold truncate">{user.email}</p>
+                  </div>
 
-        {/* MENU ITEMS */}
-        <div className="py-2">
-          <Link
-            href="/account"
-            className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
-          >
-            <UserIcon size={16} className="text-[#66A3A3]" />
-            My Profile
-          </Link>
+                  {/* MENU ITEMS */}
+                  <div className="py-2">
+                    <Link
+                      href="/account"
+                      className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      <UserIcon size={16} className="text-[#66A3A3]" />
+                      My Profile
+                    </Link>
 
-          <Link
-            href="/account/orders"
-            className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
-          >
-            <ShoppingBag size={16} className="text-[#66A3A3]" />
-            Order History
-          </Link>
+                    <Link
+                      href="/account/orders"
+                      className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      <ShoppingBag size={16} className="text-[#66A3A3]" />
+                      Order History
+                    </Link>
 
-          <Link
-            href="/account/edit"
-            className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
-          >
-            <Edit3 size={16} className="text-[#66A3A3]" />
-            Edit Profile
-          </Link>
-        </div>
+                    <Link
+                      href="/account/edit"
+                      className="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      <Edit3 size={16} className="text-[#66A3A3]" />
+                      Edit Profile
+                    </Link>
+                  </div>
 
-        {/* LOGOUT BUTTON */}
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50 font-medium transition"
-        >
-          <LogoutIcon size={16} />
+                  {/* LOGOUT BUTTON */}
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50 font-medium transition"
+                  >
+                    <LogoutIcon size={16} />
+                    Sign Out
+                  </button>
 
-          Sign Out
-        </button>
-
-      </div>
-    </div>
-  </div>
-) : (
-  <Link
-    href="/auth/login"
-    className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition"
-  >
-    <User size={20} />
-    <span className="hidden md:inline text-xs">Sign In</span>
-  </Link>
-)}
-
-           {/* --- AUTHENTICATION LOGIC END --- */}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="flex flex-col items-center gap-1 hover:text-[#66A3A3] transition"
+            >
+              <User size={20} />
+              <span className="hidden md:inline text-xs">Sign In</span>
+            </Link>
+          )}
 
            <Link href="/cart" className="relative flex flex-col items-center gap-1 hover:text-[#66A3A3] transition-colors">
               <ShoppingCart size={20} />
@@ -172,7 +182,6 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
                 onMouseEnter={() => setOpenMenu(item.title)}
                 onMouseLeave={() => setOpenMenu(null)}
               >
-                {/* --- LEVEL 1 LINK (Main Menu) --- */}
                 <Link 
                   href={`/category/${item.slug}`} 
                   className={`py-4 text-sm font-semibold tracking-wide transition-colors border-b-2 border-transparent hover:text-[#66A3A3] inline-block ${openMenu === item.title ? 'text-[#66A3A3] border-[#66A3A3]' : 'text-gray-700'}`}
@@ -192,14 +201,15 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
                             Popular
                           </h4>
                           <ul className="space-y-4">
-                            {[
-                              { label: "Birthday Cards", icon: faBirthdayCake },
-                              { label: "Birthday Gifts", icon: faGift },
-                              { label: "Birthday Balloons", icon: faStar },
+                           {[
+                              // ✅ ADDED SLUGS HERE
+                              { label: "Birthday Cards", slug: "birthday", icon: faBirthdayCake },
+                              { label: "Birthday Gifts", slug: "gifts-gift-occasions-birthday", icon: faGift },
+                              { label: "Birthday Balloons", slug: "gifts-browse-by-category-balloons", icon: faStar },
                             ].map((c) => (
                               <li key={c.label}>
                                 <Link
-                                  href="#"
+                                  href={`/category/${c.slug}`} // ✅ UPDATED LINK
                                   className="flex items-center gap-3 text-sm text-gray-600 hover:text-[#66A3A3] transition-colors group/link"
                                 >
                                   <span className="flex-none w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 group-hover/link:bg-[#f0fcfc] transition-colors text-[#66A3A3]">
@@ -214,26 +224,16 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
 
                         {/* MIDDLE COLUMN: Dynamic Links */}
                         <div className="col-span-7 px-4">
-                          
-                          {/* FIX: Dynamic Grid Columns 
-                              If we have 4+ groups (like Gifts), use 4 columns.
-                              Otherwise use 3 columns (like Birthday).
-                          */}
                           <div className={`grid gap-x-6 gap-y-10 ${item.submenu.length >= 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
-                            
                             {item.submenu.map((group) => (
                               <div key={group.heading} className="space-y-4">
-                                
-                                {/* --- LEVEL 2 LINK (Headings like 'For Him') --- */}
                                 <Link 
                                   href={`/category/${group.slug}`}
                                   className="block font-bold text-gray-900 text-sm border-b border-gray-100 pb-2 mb-3 hover:text-[#66A3A3] transition-colors line-clamp-1"
                                 >
                                   {group.heading}
                                 </Link>
-
                                 <ul className="space-y-2.5">
-                                  {/* --- LEVEL 3 LINKS (Items like 'Brother') --- */}
                                   {Array.isArray(group.links) && group.links.map((linkName, idx) => {
                                     const correctSlug = group.slugs && group.slugs[idx] ? group.slugs[idx] : '#';
                                     return (
@@ -313,10 +313,10 @@ const cartCount = cart.reduce((a, b) => a + b.qty, 0);
           )}
         </div>
       </nav>
-       {/* Blue line at bottom of header */}
-  <div className="bg-thirdcolor text-white text-center py-2 text-base font-medium">
-  Same day dispatch on all orders before 12pm
-  </div>
+      {/* Blue line at bottom of header */}
+      <div className="bg-thirdcolor text-white text-center py-2 text-base font-medium">
+        Same day dispatch on all orders before 12pm
+      </div>
     </header>
   );
 }

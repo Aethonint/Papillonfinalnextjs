@@ -1,102 +1,53 @@
-// "use client";
-
-// import Image from "next/image";
-// import Link from "next/link";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-// import { faFacebook } from "@fortawesome/free-brands-svg-icons";
-// import { faInstagram } from "@fortawesome/free-brands-svg-icons";
-
-
-
-// export default function Footer() {
-
-//   return (
-//     <footer className="w-full flex flex-col justify-center items-center pt-6">
-//    <div className="flex justify-center items-center bg-thirdcolor h-[55px] w-full">
-// <h2 className="bg-white px-64 py-1 rounded-sm">Order by 2pm for same day dispatch via ROYAL MAIL 1st Class</h2>
-//    </div>
-//    <div className="flex justify-start items-start gap-20 py-10">
-//       <div className="flex flex-col items-center xl:items-start sm:max-w-[800px]  xl:max-w-[480px]">
-//   <Image 
-//   src="/logo/newlogo.png" 
-//   alt="Home Hero 1" 
-//   width={123} 
-//   height={111}
-//   className="flex  object-contain" />
-          
-//           </div>
-
-
-//            <div className="flex flex-col items-start font-albert">
-//             <p className="text-thirdcolor text-[18px] sm:text-[20px] font-[700] capitalize">popular</p>
-//             <Link href="#" className="text-black  pt-4 capitalize">birthday cards</Link>
-//             <Link href="#" className="text-black  pt-2 capitalize">kids cards</Link>
-//             <Link href="#" className="text-black  pt-2 capitalize">New Home Cards</Link>
-//             <Link href="#" className="text-black  pt-2 capitalize">Thankyou Cards</Link>
-//           </div>
-
-
-//            <div className="flex flex-col items-start font-albert">
-//             <p className="text-[#66A3A3] text-[18px] sm:text-[20px] font-[700] capitalize">useful links</p>
-//             <Link href="/contact-us" className="text-black pt-4 capitalize">contact</Link>
-//             <Link href="#" className="text-black pt-2 capitalize">About</Link>
-//             <Link href="#" className="text-black pt-2 capitalize">Cart</Link>
-//             <Link href="#" className="text-black pt-2 capitalize">Blog</Link>
-//           </div>
-
-
-//          <div className="flex flex-col items-start pt-7 md:pt-0 font-albert">
-//             <p className="text-[#66A3A3] text-[18px] sm:text-[20px] font-[700] capitalize ">connect with us</p>
- 
-//      <Link href="#">
-//       <div className="flex text-black gap-3 items-center pt-4">
-             
-          
-//     <div className="flex items-center justify-center">
-//       <FontAwesomeIcon icon={faEnvelope} className="text-lg text-[#66A3A3]" />
-//     </div>
-//     <p>hello@papillon.snapchec.com</p>
-
-//     </div>
-//               </Link>
-//           <div className="flex text-white pt-3 gap-3">
-//   <Link href="#">
-//     <div className="w-8 h-8 bg-[#66A3A3] rounded-full flex items-center justify-center">
-//       <FontAwesomeIcon icon={faFacebook} className="text-sm" />
-//     </div>
-//   </Link>
-
-//   <Link href="#">
-//     <div className="w-8 h-8 bg-[#66A3A3] rounded-full flex items-center justify-center">
-//       <FontAwesomeIcon icon={faInstagram} className="text-sm" />
-//     </div>
-//   </Link>
-// </div>
-//           </div>
-//    </div>
-
-//       <section className="bg-[#66A3A3] w-full px-4 py-4 text-center font-albert">
-//   <p className="text-[12px] sm:text-[14px] text-white leading-tight">
-//    © Copyrights 2023 Papillon Cards, All Rights Reserved.
-//   </p>
-// </section>
-
-//     </footer>
-//   );
-// }
-
-
-
 "use client";
 
+import { useState } from "react"; // Import useState
 import Image from "next/image";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faSpinner } from "@fortawesome/free-solid-svg-icons"; // Added Spinner
 import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
+import toast from "react-hot-toast"; // Assuming you have toast installed, otherwise use alert
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState(null); // To show success/error text below input
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch("http://localhost:8000/api/newsletter/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Subscribed successfully!");
+        setStatusMsg({ type: 'success', text: "Thanks for subscribing!" });
+        setEmail(""); // Clear input
+      } else {
+        // Handle validation error (e.g. email already exists)
+        const errorText = data.errors?.email?.[0] || "Subscription failed.";
+        toast.error(errorText);
+        setStatusMsg({ type: 'error', text: errorText });
+      }
+    } catch (error) {
+      console.error("Newsletter error:", error);
+      setStatusMsg({ type: 'error', text: "Something went wrong." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer className="relative bg-white overflow-hidden">
 
@@ -167,19 +118,35 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* Newsletter Signup */}
+          {/* Newsletter Signup Form */}
           <div className="mt-4">
             <h4 className="text-[#66A3A3] font-semibold text-sm sm:text-base mb-2">Subscribe Newsletter</h4>
-            <div className="flex gap-2">
+            
+            <form onSubmit={handleSubscribe} className="flex gap-2">
               <input 
                 type="email" 
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email" 
-                className="px-3 py-2 rounded-lg border border-gray-300 hover:border-thirdcolor active:border-thirdcolor w-full  transition"
+                className="px-3 py-2 rounded-lg border border-gray-300 hover:border-thirdcolor active:border-thirdcolor w-full transition outline-none focus:ring-1 focus:ring-[#66A3A3]"
               />
-              <button className="px-4 py-2 rounded-lg bg-[#66A3A3] text-white font-semibold hover:brightness-110 transition">
-                Subscribe
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-[#66A3A3] text-white font-semibold hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? "..." : "Join"}
               </button>
-            </div>
+            </form>
+
+            {/* Status Message */}
+            {statusMsg && (
+                <p className={`text-xs mt-2 ${statusMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                    {statusMsg.text}
+                </p>
+            )}
+
           </div>
         </div>
       </div>
