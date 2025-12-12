@@ -17,7 +17,7 @@ const DELIVERY_OPTIONS = [
 export default function DeliveryPage() {
   const router = useRouter();
   const { user, token } = useAuth(); 
-  const { setShippingAddress, cart, subtotal } = useCart();
+ const { setShippingAddress, setShippingCost, cart, subtotal } = useCart();
   
   const [mode, setMode] = useState("self"); 
   const [selectedDelivery, setSelectedDelivery] = useState(DELIVERY_OPTIONS[0]);
@@ -113,8 +113,9 @@ export default function DeliveryPage() {
         }
     };
 
-    // Save to Context
+  // Save to Context
     setShippingAddress(dataToSave);
+    setShippingCost(selectedDelivery.price); // <--- ADD THIS LINE HERE
 
     // UX Feedback
     toast.loading("Processing delivery details...", { duration: 1500 });

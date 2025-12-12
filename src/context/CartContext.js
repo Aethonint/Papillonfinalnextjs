@@ -7,22 +7,29 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   
-  // Stores: Name, Address, Phone, Label, AND Selected Delivery Speed
+  // Stores: Name, Address, Phone, Label
   const [shippingAddress, setShippingAddress] = useState(null);
 
-  const [isLoaded, setIsLoaded] = useState(false); // Fixes Hydration errors
+  // --- NEW: Store Shipping Cost separately ---
+  const [shippingCost, setShippingCost] = useState(0);
+
+  const [isLoaded, setIsLoaded] = useState(false); 
 
   // 1. Load from Local Storage on Mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedCart = localStorage.getItem("cart");
       const savedAddress = localStorage.getItem("shippingAddress");
+      const savedShipping = localStorage.getItem("shippingCost"); // Load shipping cost
       
       if (savedCart) {
         try { setCartItems(JSON.parse(savedCart)); } catch (e) { console.error("Cart Parse Error:", e); }
       }
       if (savedAddress) {
         try { setShippingAddress(JSON.parse(savedAddress)); } catch (e) { console.error("Address Parse Error:", e); }
+      }
+      if (savedShipping) {
+        try { setShippingCost(parseFloat(savedShipping)); } catch (e) { console.error("Shipping Parse Error:", e); }
       }
       setIsLoaded(true);
     }
@@ -45,6 +52,13 @@ export function CartProvider({ children }) {
         }
     }
   }, [shippingAddress, isLoaded]);
+
+  // 4. Save Shipping Cost to Local Storage
+  useEffect(() => {
+    if (isLoaded && typeof window !== "undefined") {
+      localStorage.setItem("shippingCost", shippingCost);
+    }
+  }, [shippingCost, isLoaded]);
 
   // --- CART FUNCTIONS ---
 
@@ -77,18 +91,19 @@ export function CartProvider({ children }) {
   const clearCart = () => {
       setCartItems([]);
       setShippingAddress(null);
+      setShippingCost(0); // Reset shipping cost
       if (typeof window !== "undefined") {
         localStorage.removeItem("cart");
         localStorage.removeItem("shippingAddress");
+        localStorage.removeItem("shippingCost");
       }
   };
 
   // Calculate Subtotal (Items only)
   const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.qty || 1)), 0);
   
-  // NOTE: 'total' here is just Item Subtotal. 
-  // Grand Total (with shipping) is calculated in Delivery/Checkout using shippingAddress.delivery_option.price
-  const total = subtotal; 
+  // --- UPDATED: Total now includes Shipping ---
+  const total = subtotal + shippingCost;
 
   return (
     <CartContext.Provider value={{ 
@@ -98,9 +113,11 @@ export function CartProvider({ children }) {
         removeFromCart,    
         clearCart, 
         subtotal, 
-        total,
+        total,             // This is now (Items + Shipping)
         shippingAddress,
-        setShippingAddress
+        setShippingAddress,
+        shippingCost,      // Expose this
+        setShippingCost    // Expose this so Delivery page can update it
     }}>
       {children}
     </CartContext.Provider>
