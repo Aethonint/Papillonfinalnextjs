@@ -19,6 +19,9 @@ export default function Footer() {
     setStatusMsg(null);
 
     try {
+
+
+
       const res = await fetch("http://localhost:8000/api/newsletter/subscribe", {
         method: "POST",
         headers: {

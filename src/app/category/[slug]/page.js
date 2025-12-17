@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-// 1. IMPORT YOUR COMPONENT
-import DynamicThumbnail from "@/components/DynamicThumbnail"; 
+// ✅ IMPORT THE NEW GRID COMPONENT
+import ProductGrid from "@/components/ProductGrid"; 
 
-// Function to fetch data from your Laravel API
+// Function to fetch data from your Laravel API (Server Side)
 async function getCategoryProducts(slug) {
   try {
     const res = await fetch(`http://localhost:8000/api/products/category/${slug}`, {
@@ -23,6 +23,7 @@ export default async function CategoryPage({ params }) {
   // Fix for Next.js 15: Await params
   const { slug } = await params;
 
+  // 1. Fetch initial data (Page 1 only)
   const data = await getCategoryProducts(slug);
 
   if (!data) {
@@ -37,7 +38,6 @@ export default async function CategoryPage({ params }) {
   }
 
   const { category, products } = data;
-  const productList = products.data || []; 
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-slate-800 pb-20">
@@ -65,72 +65,12 @@ export default async function CategoryPage({ params }) {
         </Link>
       </div>
 
-      {/* 3. Product Grid */}
+      {/* 3. Product Grid (Client Component for Lazy Loading) */}
       <div className="container mx-auto px-4">
-        {productList.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {productList.map((product) => {
-              
-              // 2. PREPARE PROPS FOR DYNAMIC THUMBNAIL
-              const frontSlide = product.design_data?.slides?.front;
-              
-              // ✅ CRITICAL UPDATE: Merge Static + Dynamic Zones
-              // This grabs the static text (like "Merry Christmas") AND dynamic placeholders
-              const staticZones = frontSlide?.static_zones || [];
-              const dynamicZones = frontSlide?.dynamic_zones || [];
-              const allZones = [...staticZones, ...dynamicZones];
-
-              const thumbnailProps = {
-                  id: product.id,
-                  sku: product.sku,
-                  title: product.title,
-                  // Use front background if available, else thumbnail, else placeholder
-                  thumbnail_url: frontSlide?.background_url || product.thumbnail_url || "/placeholder.png",
-                  canvas_settings: product.canvas_settings,
-                  
-                  // ✅ PASS THE MERGED ZONES HERE
-                  preview_zones: allZones 
-              };
-
-              return (
-                <Link 
-                  href={`/product/${product.sku}`} 
-                  key={product.id}
-                  className="group bg-white rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#9DCDCD]"
-                >
-                  {/* Image Container */}
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-4">
-                    
-                    {/* 3. REPLACE STATIC IMAGE WITH DYNAMIC THUMBNAIL */}
-                    <div className="w-full h-full group-hover:scale-105 transition-transform duration-500">
-                       <DynamicThumbnail product={thumbnailProps} />
-                    </div>
-                    
-                    {/* Quick Action Button */}
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 pointer-events-none">
-                      <span className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg">
-                        {product.type === 'fixed' ? 'View Details' : 'Personalize'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="text-center">
-                    <h3 className="font-bold text-lg text-gray-800 group-hover:text-[#66A3A3] transition-colors line-clamp-1">
-                      {product.title}
-                    </h3>
-                    <p className="text-gray-500 mt-1">From £{product.price}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-             <h3 className="text-xl font-bold text-gray-400 mt-4">No products found here yet.</h3>
-             <p className="text-gray-400">We are adding new designs to {category.name} soon!</p>
-          </div>
-        )}
+          <ProductGrid 
+            initialProducts={products} 
+            categorySlug={slug} 
+          />
       </div>
     </div>
   );
