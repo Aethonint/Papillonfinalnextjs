@@ -6,7 +6,8 @@ import ProductGrid from "@/components/ProductGrid";
 // Function to fetch data from your Laravel API (Server Side)
 async function getCategoryProducts(slug) {
   try {
-    const res = await fetch(`http://localhost:8000/api/products/category/${slug}`, {
+
+    const res = await fetch(`https://papillondashboard.devshop.site/api/products/category/${slug}`, {
       cache: "no-store", 
     });
 

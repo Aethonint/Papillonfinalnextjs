@@ -43,7 +43,8 @@ export default function DeliveryPage() {
     async function fetchAddresses() {
         if (!token) return;
         try {
-            const res = await fetch("http://localhost:8000/api/addresses", {
+
+            const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {

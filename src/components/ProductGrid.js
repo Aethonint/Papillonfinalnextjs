@@ -38,7 +38,8 @@ export default function ProductGrid({ initialProducts, categorySlug }) {
       setLoading(true);
       try {
         // ✅ Make sure this URL matches your API environment (localhost vs production)
-        const res = await fetch(`http://localhost:8000/api/products/category/${categorySlug}?page=${page}`);
+
+        const res = await fetch(`https://papillondashboard.devshop.site/api/products/category/${categorySlug}?page=${page}`);
         const data = await res.json();
         
         const newProducts = data.products.data;

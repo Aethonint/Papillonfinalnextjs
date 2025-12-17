@@ -48,7 +48,8 @@ export default function CheckoutPage() {
     setError(""); 
 
     // 2. Fetch Payment Intent
-    fetch("http://localhost:8000/api/create-payment-intent", {
+
+    fetch("https://papillondashboard.devshop.site/api/create-payment-intent", {
       method: "POST",
       headers: { 
           "Content-Type": "application/json",

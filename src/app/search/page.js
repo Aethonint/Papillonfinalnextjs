@@ -7,7 +7,8 @@ import DynamicThumbnail from "@/components/DynamicThumbnail";
 async function getSearchResults(query) {
   try {
     // We use the same API endpoint we fixed earlier
-    const res = await fetch(`http://localhost:8000/api/products?search=${query}`, {
+
+    const res = await fetch(`https://papillondashboard.devshop.site/api/products?search=${query}`, {
       cache: "no-store", 
     });
 
@@ -42,7 +43,7 @@ export default async function SearchPage({ searchParams }) {
                Search Results
             </h1>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
-               Showing results for <span className="font-bold underline">"{q}"</span>
+            Showing results for <span className="font-bold underline">&quot;{q}&quot;</span>
             </p>
         </div>
         
@@ -122,7 +123,7 @@ export default async function SearchPage({ searchParams }) {
              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
                 <ArrowLeft size={24} />
              </div>
-             <h3 className="text-xl font-bold text-gray-400">No cards found for "{q}"</h3>
+            <h3 className="text-xl font-bold text-gray-400">No cards found for &quot;{q}&quot;</h3>
              <p className="text-gray-400 mb-6">Try checking your spelling or use a different keyword.</p>
              <Link href="/" className="px-6 py-2 bg-[#66A3A3] text-white rounded-full font-bold hover:bg-[#558b8b] transition-colors">
                Browse All Categories
