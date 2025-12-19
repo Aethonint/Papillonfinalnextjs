@@ -40,6 +40,8 @@ export default function Header() {
     async function fetchMenu() {
       try {
 
+
+
         const res = await fetch("https://papillondashboard.devshop.site/api/header-menu");
         if (!res.ok) throw new Error("Failed to fetch menu");
         const data = await res.json();

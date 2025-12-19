@@ -230,6 +230,8 @@ export default function EditorPage() {
 
     const timer = setTimeout(() => {
 
+
+
         fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
         .then((res) => res.json())
         .then((data) => {

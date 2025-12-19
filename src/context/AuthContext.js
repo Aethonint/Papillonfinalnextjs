@@ -45,6 +45,8 @@ export const AuthProvider = ({ children }) => {
 
     try {
 
+
+
       const res = await fetch("https://papillondashboard.devshop.site/api/user", {
         method: "GET",
         headers: {
@@ -69,6 +71,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
         if (token) {
+
+
 
             await fetch("https://papillondashboard.devshop.site/api/logout", {
                 method: "POST",

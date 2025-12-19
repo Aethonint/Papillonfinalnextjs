@@ -101,6 +101,8 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
       
       // 3. Send to Laravel API
 
+
+
       const res = await fetch("https://papillondashboard.devshop.site/api/orders", {
         method: "POST",
         headers: { 

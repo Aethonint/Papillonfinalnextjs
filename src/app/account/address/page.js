@@ -28,8 +28,10 @@ export default function AddressBook() {
   }, [token]);
 
 
+
   const fetchAddresses = async () => {
     try {
+
       const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -49,6 +51,8 @@ export default function AddressBook() {
 
     setSaving(true);
     try {
+
+
 
       const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
         method: "POST",
@@ -77,6 +81,8 @@ export default function AddressBook() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure?")) return;
     try {
+
+
 
       const res = await fetch(`https://papillondashboard.devshop.site/api/addresses/${id}`, {
         method: "DELETE",

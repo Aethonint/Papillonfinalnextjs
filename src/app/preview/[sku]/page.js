@@ -23,6 +23,8 @@ export default function PreviewPage() {
     
 
     // Fetch product details
+
+
     fetch(`https://papillondashboard.devshop.site/api/product/${params.sku}`)
       .then((res) => res.json())
       .then((data) => setProduct(data))

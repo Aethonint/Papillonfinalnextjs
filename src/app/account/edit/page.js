@@ -35,6 +35,8 @@ export default function EditProfile() {
 
   // --- 1. UPDATE NAME ---
 
+
+
   const handleNameUpdate = async () => {
     setLoading(true);
     try {
@@ -68,6 +70,8 @@ export default function EditProfile() {
     setLoading(true);
     try {
 
+
+
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -90,6 +94,8 @@ export default function EditProfile() {
     e.preventDefault();
     setLoading(true);
     try {
+
+
 
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/verify-email`, {
         method: "POST",
@@ -126,6 +132,8 @@ export default function EditProfile() {
     setLoading(true);
     try {
 
+
+
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/password/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -151,6 +159,8 @@ export default function EditProfile() {
     setLoading(true);
     try {
 
+
+
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/password/forgot-initiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -173,6 +183,8 @@ export default function EditProfile() {
     if (newPassword !== confirmPassword) return toast.error("New passwords do not match");
     setLoading(true);
     try {
+
+
 
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/password/forgot-confirm`, {
         method: "POST",

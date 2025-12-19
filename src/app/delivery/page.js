@@ -44,6 +44,8 @@ export default function DeliveryPage() {
         if (!token) return;
         try {
 
+
+
             const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
                 headers: { Authorization: `Bearer ${token}` }
             });

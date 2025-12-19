@@ -27,6 +27,8 @@ export default function ProductDetailsPage() {
     if (!sku) return;
 
 
+
+
     fetch(`https://papillondashboard.devshop.site/api/product/${sku}`)
       .then((res) => {
         if (!res.ok) throw new Error("Product not found");

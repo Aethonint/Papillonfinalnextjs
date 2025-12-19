@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-// ✅ IMPORT THE NEW GRID COMPONENT
 import ProductGrid from "@/components/ProductGrid"; 
 
-// Function to fetch data from your Laravel API (Server Side)
+// Function to fetch data from your Laravel API
 async function getCategoryProducts(slug) {
   try {
+
 
     const res = await fetch(`https://papillondashboard.devshop.site/api/products/category/${slug}`, {
       cache: "no-store", 
@@ -21,10 +21,7 @@ async function getCategoryProducts(slug) {
 }
 
 export default async function CategoryPage({ params }) {
-  // Fix for Next.js 15: Await params
   const { slug } = await params;
-
-  // 1. Fetch initial data (Page 1 only)
   const data = await getCategoryProducts(slug);
 
   if (!data) {
@@ -38,7 +35,8 @@ export default async function CategoryPage({ params }) {
     );
   }
 
-  const { category, products } = data;
+  // ✅ Extract sub_categories from the API response
+  const { category, products, sub_categories } = data; 
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-slate-800 pb-20">
@@ -53,24 +51,27 @@ export default async function CategoryPage({ params }) {
             {category.description || `Discover our unique collection of ${category.name} cards.`}
             </p>
         </div>
-        
-        {/* Decorative Background Circles */}
         <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#66A3A3] opacity-20 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
       </div>
 
-      {/* 2. Breadcrumb / Navigation */}
+      {/* 2. Breadcrumb */}
       <div className="container mx-auto px-4 py-6">
         <Link href="/" className="inline-flex items-center text-sm text-gray-500 hover:text-[#66A3A3] transition-colors">
           <ArrowLeft size={16} className="mr-2" /> Back to Home
         </Link>
       </div>
 
-      {/* 3. Product Grid (Client Component for Lazy Loading) */}
+      {/* 3. Product Grid */}
       <div className="container mx-auto px-4">
           <ProductGrid 
             initialProducts={products} 
-            categorySlug={slug} 
+            // ✅ Pass the default endpoint for the parent category
+
+
+            apiEndpoint={`https://papillondashboard.devshop.site/api/products/category/${slug}`}
+            // ✅ Pass the filters (sub-categories) we got from the API
+            subCategories={sub_categories || []} 
           />
       </div>
     </div>

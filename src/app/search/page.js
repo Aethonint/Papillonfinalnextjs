@@ -8,6 +8,8 @@ async function getSearchResults(query) {
   try {
     // We use the same API endpoint we fixed earlier
 
+
+
     const res = await fetch(`https://papillondashboard.devshop.site/api/products?search=${query}`, {
       cache: "no-store", 
     });

@@ -13,6 +13,8 @@ import { GiRing } from 'react-icons/gi';
 async function getBirthdayCards() {
   try {
 
+
+
     const res = await fetch('https://papillondashboard.devshop.site/api/products/category/birthday', {
       next: { revalidate: 60 } 
     });
@@ -26,6 +28,8 @@ async function getBirthdayCards() {
 // 2. FETCH LATEST PRODUCTS (Section 5 - Slider)
 async function getLatestProducts() {
   try {
+
+
 
     const res = await fetch('https://papillondashboard.devshop.site/api/products', {
       next: { revalidate: 60 } 

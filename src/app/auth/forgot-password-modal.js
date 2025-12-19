@@ -24,6 +24,8 @@ export default function ForgotPasswordModal({ open, onClose }) {
 
     try {
 
+
+
       const res = await fetch("https://papillondashboard.devshop.site/api/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
@@ -54,6 +56,8 @@ export default function ForgotPasswordModal({ open, onClose }) {
     setLoading(true);
 
     try {
+
+
 
       const res = await fetch("https://papillondashboard.devshop.site/api/reset-password", {
         method: "POST",

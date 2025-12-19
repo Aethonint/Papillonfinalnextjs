@@ -29,6 +29,8 @@ function VerifyContent() {
 
     try {
 
+
+
       const res = await fetch("https://papillondashboard.devshop.site/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
@@ -56,6 +58,8 @@ function VerifyContent() {
     
     setResending(true);
     try {
+
+
 
         const res = await fetch("https://papillondashboard.devshop.site/api/resend-otp", {
             method: "POST",
