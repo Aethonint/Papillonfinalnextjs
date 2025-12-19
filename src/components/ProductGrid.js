@@ -29,6 +29,7 @@ export default function ProductGrid({ initialProducts, apiEndpoint, subCategorie
           // Build the new URL for the sub-category
 
 
+
           const newUrl = `https://papillondashboard.devshop.site/api/products/category/${subCatSlug}`;
           setCurrentEndpoint(newUrl);
           await reloadProducts(newUrl);

@@ -29,6 +29,7 @@ export default function AddressBook() {
 
 
 
+
   const fetchAddresses = async () => {
     try {
 
@@ -48,6 +49,7 @@ export default function AddressBook() {
     if (!form.full_name || !form.email || !form.line1 || !form.city || !form.postcode) {
       return toast.error("Please fill in all required fields.");
     }
+
 
     setSaving(true);
     try {
@@ -77,6 +79,7 @@ export default function AddressBook() {
       setSaving(false);
     }
   };
+
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure?")) return;

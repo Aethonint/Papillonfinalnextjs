@@ -37,6 +37,7 @@ export default function EditProfile() {
 
 
 
+
   const handleNameUpdate = async () => {
     setLoading(true);
     try {
@@ -65,6 +66,7 @@ export default function EditProfile() {
     setOtp("");
   };
 
+
   const initiateEmailChange = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -89,6 +91,7 @@ export default function EditProfile() {
       setLoading(false);
     }
   };
+
 
   const verifyEmailOtp = async (e) => {
     e.preventDefault();
@@ -125,6 +128,7 @@ export default function EditProfile() {
     setOtp("");
   };
 
+
   // A. Standard Change (Knows Current Password)
   const submitPasswordChange = async (e) => {
     e.preventDefault();
@@ -137,10 +141,10 @@ export default function EditProfile() {
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/password/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-            current_password: currentPassword, 
-            password: newPassword, 
-            password_confirmation: confirmPassword 
+        body: JSON.stringify({
+            current_password: currentPassword,
+            password: newPassword,
+            password_confirmation: confirmPassword
         }),
       });
       const data = await res.json();
@@ -153,6 +157,7 @@ export default function EditProfile() {
       setLoading(false);
     }
   };
+
 
   // B. Forgot Password Trigger (Sends OTP)
   const handleForgotPassword = async () => {
@@ -177,6 +182,7 @@ export default function EditProfile() {
     }
   };
 
+
   // C. Reset Password with OTP
   const submitPasswordReset = async (e) => {
     e.preventDefault();
@@ -189,10 +195,10 @@ export default function EditProfile() {
       const res = await fetch(`https://papillondashboard.devshop.site/api/profile/password/forgot-confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-            otp, 
-            password: newPassword, 
-            password_confirmation: confirmPassword 
+        body: JSON.stringify({
+            otp,
+            password: newPassword,
+            password_confirmation: confirmPassword
         }),
       });
       const data = await res.json();

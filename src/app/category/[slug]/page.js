@@ -7,8 +7,9 @@ async function getCategoryProducts(slug) {
   try {
 
 
+
     const res = await fetch(`https://papillondashboard.devshop.site/api/products/category/${slug}`, {
-      cache: "no-store", 
+      cache: "no-store",
     });
 
     if (!res.ok) return null;
@@ -67,6 +68,7 @@ export default async function CategoryPage({ params }) {
           <ProductGrid 
             initialProducts={products} 
             // ✅ Pass the default endpoint for the parent category
+
 
 
             apiEndpoint={`https://papillondashboard.devshop.site/api/products/category/${slug}`}

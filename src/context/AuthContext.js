@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
             await fetch("https://papillondashboard.devshop.site/api/logout", {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Authorization": `Bearer ${token}`,
                     "Accept": "application/json"
                 },
