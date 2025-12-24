@@ -25,7 +25,6 @@ export default function Footer() {
 
 
 
-
       const res = await fetch("https://papillondashboard.devshop.site/api/newsletter/subscribe", {
         method: "POST",
         headers: {

@@ -42,7 +42,6 @@ export default function RegisterPage() {
 
 
 
-
       const res = await fetch("https://papillondashboard.devshop.site/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },

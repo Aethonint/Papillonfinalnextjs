@@ -31,7 +31,6 @@ function VerifyContent() {
 
 
 
-
       const res = await fetch("https://papillondashboard.devshop.site/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
@@ -59,11 +58,14 @@ function VerifyContent() {
     
     setResending(true);
     try {
-      const res = await fetch("https://papillondashboard.devshop.site/api/resend-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+
+
+
+        const res = await fetch("https://papillondashboard.devshop.site/api/resend-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify({ email }),
+        });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to resend");

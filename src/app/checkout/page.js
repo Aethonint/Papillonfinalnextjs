@@ -51,7 +51,6 @@ export default function CheckoutPage() {
 
 
 
-
     fetch("https://papillondashboard.devshop.site/api/create-payment-intent", {
       method: "POST",
       headers: { 

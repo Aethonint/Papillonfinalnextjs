@@ -1,21 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // <--- 1. Import useRouter
 import { Home, Trash2, Plus, MapPin, Loader2, Phone, Mail } from "lucide-react";
 import AccountSidebar from "@/components/AccountSidebar";
 import { useAuth } from "@/context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function AddressBook() {
+  // --- AUTH PROTECTION START ---
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Check directly in LocalStorage for speed
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
+
+    if (!storedToken) {
+      router.replace("/auth/login"); // Redirect if no token
+    } else {
+      setIsAuthorized(true); // Allow access
+    }
+  }, [router]);
+  // --- AUTH PROTECTION END ---
+
   const { token } = useAuth();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Form State (Added email)
+  // Form State
   const [form, setForm] = useState({
     full_name: "",
-    email: "", // <--- NEW FIELD
+    email: "", 
     phone: "", 
     line1: "",
     line2: "",
@@ -23,25 +40,35 @@ export default function AddressBook() {
     postcode: ""
   });
 
+  // Fetch Addresses
   useEffect(() => {
-    if (token) fetchAddresses();
-  }, [token]);
+    // Only fetch if authorized and token exists
+    if (!isAuthorized || !token) return;
 
+    const fetchAddresses = async () => {
+      try {
+        const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) setAddresses(await res.json());
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchAddresses();
+  }, [token, isAuthorized]);
 
-
-  const fetchAddresses = async () => {
-    try {
-
-      const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) setAddresses(await res.json());
-    } catch (error) {
-      console.error("Fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
+  const fetchAddressesManual = async () => {
+     // Helper to re-fetch after save
+     try {
+        const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) setAddresses(await res.json());
+      } catch (error) { console.error(error); }
   };
 
   const handleSave = async () => {
@@ -50,12 +77,8 @@ export default function AddressBook() {
       return toast.error("Please fill in all required fields.");
     }
 
-
     setSaving(true);
     try {
-
-
-
       const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
         method: "POST",
         headers: {
@@ -68,7 +91,7 @@ export default function AddressBook() {
       if (!res.ok) throw new Error("Failed to save address");
 
       toast.success("Address saved successfully!");
-      fetchAddresses();
+      fetchAddressesManual();
       
       // Reset Form
       setForm({ full_name: "", email: "", phone: "", line1: "", line2: "", city: "", postcode: "" });
@@ -80,13 +103,9 @@ export default function AddressBook() {
     }
   };
 
-
   const handleDelete = async (id) => {
     if (!confirm("Are you sure?")) return;
     try {
-
-
-
       const res = await fetch(`https://papillondashboard.devshop.site/api/addresses/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
@@ -99,6 +118,15 @@ export default function AddressBook() {
       toast.error("Failed to delete");
     }
   };
+
+  // --- 3. SHOW SPINNER IF CHECKING AUTH ---
+  if (!isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-stone-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#66A3A3]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -138,7 +166,7 @@ export default function AddressBook() {
                     value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} />
             </div>
 
-            {/* ... Address Fields (same as before) ... */}
+            {/* Address Fields */}
             <div className="col-span-2 md:col-span-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">Address Line 1</label>
                 <input className="w-full border p-3 rounded-xl bg-gray-50 outline-none" value={form.line1} onChange={(e) => setForm({...form, line1: e.target.value})} />
@@ -166,7 +194,9 @@ export default function AddressBook() {
 
         {/* --- SAVED LIST --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {addresses.map((a) => (
+            {loading ? (
+                 <div className="col-span-2 flex justify-center py-10"><Loader2 className="animate-spin text-[#66A3A3]"/></div>
+            ) : addresses.map((a) => (
               <div key={a.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-start group">
                 <div>
                     <h4 className="font-bold text-gray-900">{a.full_name}</h4>
@@ -174,7 +204,7 @@ export default function AddressBook() {
                     {a.phone && <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Phone size={12}/> {a.phone}</p>}
                     <p className="text-gray-500 text-sm mt-2">{a.line1}, {a.city}, {a.postcode}</p>
                 </div>
-                <button onClick={() => handleDelete(a.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={20} /></button>
+                <button onClick={() => handleDelete(a.id)} className="text-gray-300 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
               </div>
             ))}
         </div>

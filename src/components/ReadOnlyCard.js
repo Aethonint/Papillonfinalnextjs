@@ -12,23 +12,36 @@ const ProtectedImage = ({ url }) => {
   );
 };
 
-// --- 2. HELPER: STATIC TEXT ZONE (FIXED ALIGNMENT) ---
-const StaticTextZone = ({ zone, value, userStyle }) => {
+// --- 2. HELPER: STATIC TEXT ZONE (FIXED ALIGNMENT & LOGIC) ---
+const StaticTextZone = ({ zone, value, userStyle, isStatic }) => {
   // 1. Determine Font & Color
-  const activeFont = userStyle?.fontFamily || (zone.fontFamily ? zone.fontFamily.replace(/['"]/g, "").split(",")[0] : "Arial");
-  const activeColor = userStyle?.color || zone.color || "#000";
+  const activeFont = (!isStatic && userStyle?.fontFamily) || (zone.fontFamily ? zone.fontFamily.replace(/['"]/g, "").split(",")[0] : "Arial");
+  const activeColor = (!isStatic && userStyle?.color) || zone.color || "#000";
   const fontSize = zone.fontSize || 32;
+
   
-  // 2. Alignment Logic (Updated)
-  // We prioritize the User's choice or the Zone's default. 
-  // We only default to 'center' if nothing is defined.
-  const textAlign = userStyle?.textAlign || zone.textAlign || 'center';
+  // 2. Alignment Logic
+  // We prioritize the User's choice or the Zone's default.
+  const textAlign = (!isStatic && userStyle?.textAlign) || zone.textAlign || 'center';
   
   // Map textAlign to Flexbox justifyContent
   const justifyContent = 
     textAlign === 'left' ? 'flex-start' : 
     textAlign === 'right' ? 'flex-end' : 
     'center';
+
+  // ✅ CRITICAL LOGIC: CONTENT TO SHOW
+  // 1. If Static (Admin Text), always show zone.text (e.g., "Happy Birthday")
+  // 2. If Dynamic (User Text), only show 'value'. If empty, show nothing.
+  let contentToShow = "";
+  if (isStatic) {
+      contentToShow = zone.text || "";
+  } else {
+      contentToShow = value || ""; 
+  }
+
+  // If no content, don't render anything (cleaner look)
+  if (!contentToShow) return null;
 
   return (
     <div
@@ -43,9 +56,9 @@ const StaticTextZone = ({ zone, value, userStyle }) => {
         
         // Flexbox centering
         display: "flex", 
-        flexDirection: "column", // Stack text lines vertically
-        justifyContent: "center", // Vertically center the block of text
-        alignItems: justifyContent, // Horizontally align the block (Left/Center/Right)
+        flexDirection: "column", 
+        justifyContent: "center", // Vertically center
+        alignItems: justifyContent, // Horizontally align (Left/Center/Right)
         
         fontFamily: activeFont, 
         fontSize: `${fontSize}px`, 
@@ -54,14 +67,14 @@ const StaticTextZone = ({ zone, value, userStyle }) => {
         textAlign: textAlign, 
         
         // Text Wrapping Fixes
-        whiteSpace: "pre-wrap",   // Respects line breaks
-        wordBreak: "break-word",  // Prevents long words from overflowing
+        whiteSpace: "pre-wrap",   
+        wordBreak: "break-word",  
         lineHeight: 1.3,
         pointerEvents: "none",
-        padding: "5px" // Small padding to prevent cutting off italic fonts
+        padding: "5px" 
       }}
     >
-      {value || zone.text || ""}
+      {contentToShow}
     </div>
   );
 };
@@ -71,7 +84,7 @@ const PageContent = ({ slide, userInputs, userStyles }) => (
     <>
         <ProtectedImage url={slide?.background_url} />
         
-        {/* Render Static Zones */}
+        {/* Render Static Zones (Always Visible) */}
         {slide?.static_zones?.map((zone) => (
             zone.type === 'emoji' ? (
                 <div key={zone.id} style={{ position: "absolute", left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.width}px`, height: `${zone.height}px`, transform: `rotate(${zone.rotation}deg)`, fontSize: `${(zone.fontSize || zone.height) * 0.8}px`, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 5 }}>
@@ -82,18 +95,20 @@ const PageContent = ({ slide, userInputs, userStyles }) => (
                     key={zone.id} 
                     zone={zone} 
                     value="" 
-                    userStyle={{}} 
+                    userStyle={{}}
+                    isStatic={true} // ✅ Mark as static
                 />
             )
         ))}
 
-        {/* Render Dynamic Zones */}
+        {/* Render Dynamic Zones (Only Visible if User Types) */}
         {slide?.dynamic_zones?.map((zone) => (
             <StaticTextZone 
                 key={zone.id} 
                 zone={zone} 
                 value={userInputs?.[String(zone.id)]} 
                 userStyle={userStyles?.[String(zone.id)]}
+                isStatic={false} // ✅ Mark as dynamic
             />
         ))}
     </>

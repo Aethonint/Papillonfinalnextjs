@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import BirthdayToMilestoneSlider from '@/components/BirthdayToMilestoneSlider'
 import DynamicThumbnail from '@/components/DynamicThumbnail'
+import BirthdaySection from '@/components/BirthdaySection'
 
 // Added new icons for the new categories
 import { 
@@ -16,7 +17,7 @@ async function getBirthdayCards() {
 
 
     const res = await fetch('https://papillondashboard.devshop.site/api/products/category/birthday', {
-      next: { revalidate: 60 }
+      next: { revalidate: 60 } 
     });
     if (!res.ok) return null;
     return res.json();
@@ -32,7 +33,7 @@ async function getLatestProducts() {
 
 
     const res = await fetch('https://papillondashboard.devshop.site/api/products', {
-      next: { revalidate: 60 }
+      next: { revalidate: 60 } 
     });
     if (!res.ok) return null;
     return res.json();
@@ -45,8 +46,8 @@ async function getLatestProducts() {
 async function PageHome() {
   const [birthdayData, latestData] = await Promise.all([getBirthdayCards(), getLatestProducts()]);
 
-  // Section 4 Data (First 5 Birthday Cards)
-  const birthdayProducts = birthdayData?.products?.data?.slice(0, 5) || [];
+// :white_check_mark: FIXED: Variable name matches what is passed to the component below
+  const initialBirthdayProducts = birthdayData?.products?.data?.slice(0, 5) || [];
   
   // Section 5 Data (Latest 10 - Customizable Only)
   // KEEPING THIS LOGIC AS YOU REQUESTED TO KEEP SLIDER WORKING
@@ -54,32 +55,18 @@ async function PageHome() {
   const customizableOnly = allLatest.filter(product => product.type !== 'fixed');
   const sliderProducts = customizableOnly.slice(0, 10);
 
-  // --- UPDATED TOP PICKS (Strictly matching your Seeder Slugs) ---
-  const topPicks = [
-    // 1. Birthday
-    { title: "Birthday", icon: <FaBirthdayCake className="text-[#66A3A3]" />, link: "birthday" },
-    
-    // 2. Anniversary
-    { title: "Anniversary", icon: <FaHeart className="text-[#FF6B6B]" />, link: "anniversary" },
-    
-    // 3. For Him
-    { title: "For Him", icon: <FaUserTie className="text-[#6BCBFF]" />, link: "birthday-for-him" },
-    
-    // 4. For Her
-    { title: "For Her", icon: <FaUser className="text-[#FFD93D]" />, link: "birthday-for-her" },
-    
-    // 5. New Baby (Seeder: New Born)
-    { title: "New Baby", icon: <FaBaby className="text-[#66A3A3]" />, link: "congratulations-new-born" },
-    
-    // 6. Wedding
-    { title: "Wedding", icon: <GiRing className="text-[#9B5DE5]" />, link: "congratulations-wedding-congratulations" },
-    
-    // 7. Get Well Soon
-    { title: "Get Well", icon: <FaRegSmileBeam className="text-[#3BC9DB]" />, link: "gestural-cards-get-well-soon" },
-    
-    // 8. Thank You
-    { title: "Thank You", icon: <FaHandsHelping className="text-[#FF9F1C]" />, link: "gestural-cards-thank-you-cards" },
-  ];
+  
+const topPicks = [
+  { title: "Birthday", image: "/home/birthday.png", link: "birthday" },
+  { title: "Anniversary", image: "/home/anniversary.png", link: "anniversary", badge: "50% Off" },
+  { title: "For Him", image: "/home/he.png", link: "birthday-for-him" },
+  { title: "For Her", image: "/home/she.png", link: "birthday-for-her", badge: "50% Off" },
+  { title: "New Baby", image: "/home/baby.png", link: "congratulations-new-born", badge: "50% Off" },
+  { title: "Wedding", image: "/home/jewelry.png", link: "congratulations-wedding-congratulations" },
+  { title: "Get Well", image: "/home/hospital.png", link: "gestural-cards-get-well-soon", badge: "50% Off" },
+  { title: "Thank You", image: "/home/signboard.png", link: "gestural-cards-thank-you-cards" },
+];
+
 
   return (
     <div className="nc-PageHome relative overflow-hidden bg-white">
@@ -119,7 +106,7 @@ async function PageHome() {
               <p className='text-xl italic text-white/90'>
                 Because some messages deserve more than just a text
               </p>
-              <button className='bg-[#66A3A3] hover:bg-[#5b8c8c] transition-all duration-300 text-white px-6 py-3 rounded-lg font-semibold border-2 border-white shadow-lg'>
+              <button className='bg-[#fca1a8] hover:bg-[#5b8c8c] transition-all duration-300 text-white px-6 py-3 rounded-lg font-semibold shadow-lg'>
                 From £2.99
               </button>
             </div>
@@ -127,8 +114,177 @@ async function PageHome() {
         </div>
       </section>
 
-      {/* --- SECTION 2: TOP PICKS (RESTORED) --- */}
-      <section className="py-20">
+      {/* --- SECTION 2: TOP PICKS --- */}
+
+<section className="py-24 bg-[#FCFDFD]">
+      <div className="container mx-auto px-6 max-w-[1428px]">
+        
+        {/* Categories Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-8 md:gap-6">
+          {topPicks.map((item, index) => (
+            <Link key={index} href={`/category/${item.link}`} className="group relative">
+              
+              <div className="flex flex-col items-center">
+                
+                {/* Image Container with Floating Effect */}
+                <div className="relative mb-4">
+                  {/* Outer Glow / Soft Background */}
+                  <div className="absolute inset-0 bg-[#66A3A3]/5 rounded-full blur-2xl group-hover:bg-[#66A3A3]/15 transition-all duration-500"></div>
+                  
+                  {/* Main Circle */}
+                  <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full bg-white border border-zinc-100 
+                                  flex items-center justify-center overflow-hidden
+                                  shadow-[0_8px_30px_rgb(0,0,0,0.04)] 
+                                  group-hover:shadow-[0_15px_45px_rgba(102,163,163,0.15)]
+                                  group-hover:-translate-y-2 transition-all duration-500 ease-out">
+                    
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      width={60}
+                      height={60}
+                      className="object-contain p-2 group-hover:scale-110 transition-transform duration-500"
+                      unoptimized
+                    />
+                  </div>
+
+                  {/* Enhanced Badge */}
+                  {item.badge && (
+                    <div className="absolute -top-1 -right-1 z-20">
+                      <span className="flex items-center justify-center bg-[#66A3A3] text-white text-[10px] font-black
+                                       px-2.5 py-1 rounded-lg shadow-lg rotate-3 group-hover:rotate-0 transition-transform">
+                        {item.badge}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Title with Underline Effect */}
+                <div className="text-center relative">
+                  <h3 className="text-sm md:text-base font-bold text-zinc-800 transition-colors group-hover:text-[#66A3A3]">
+                    {item.title}
+                  </h3>
+                  {/* Tiny indicator line */}
+                  <span className="block h-0.5 w-0 bg-[#66A3A3] mx-auto group-hover:w-full transition-all duration-300 mt-1"></span>
+                </div>
+
+              </div>
+            </Link>
+          ))}
+        </div>
+
+      </div>
+    </section>
+
+{/* <section className="py-20 bg-white">
+  <div className="container mx-auto px-4">
+
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6">
+      {topPicks.map((item, index) => (
+        <Link key={index} href={`/category/${item.link}`} className="group">
+          
+          <div className="relative bg-white rounded-2xl border border-gray-200
+                          hover:border-[#66A3A3]
+                          hover:shadow-md transition">
+
+         
+            {item.badge && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2
+                               bg-[#66A3A3] text-white text-xs font-semibold
+                               px-3 py-1 rounded-full z-10">
+                {item.badge}
+              </span>
+            )}
+
+    
+            <div className="flex justify-center pt-6">
+              <div className="w-20 h-20 rounded-full bg-[#66A3A3]/15
+                              flex items-center justify-center
+                              overflow-hidden
+                              group-hover:scale-105 transition">
+
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  width={50}
+                  height={50}
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+            </div>
+
+          
+            <div className="pt-4 pb-5 text-center">
+              <h3 className="text-sm font-semibold text-gray-800
+                             group-hover:text-[#66A3A3] transition">
+                {item.title}
+              </h3>
+            </div>
+
+          </div>
+        </Link>
+      ))}
+    </div>
+
+  </div>
+</section> */}
+
+
+
+
+
+{/* <section className="py-20 bg-white">
+  <div className="container mx-auto px-4">
+
+    
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6">
+      {topPicks.map((item, index) => (
+        <Link
+          key={index}
+          href={`/category/${item.link}`}
+          className="group"
+        >
+          <div className="relative h-full bg-white rounded-2xl border 
+                          border-gray-200 hover:border-[#66A3A3]
+                          transition-all duration-300
+                          hover:shadow-lg">
+
+         
+            {item.badge && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2
+                               bg-[#66A3A3] text-white text-xs font-semibold
+                               px-3 py-1 rounded-full z-10">
+                {item.badge}
+              </span>
+            )}
+
+            <div className="flex justify-center pt-6">
+              <div className="w-20 h-20 rounded-full 
+                              bg-[#66A3A3]/15
+                              flex items-center justify-center
+                              transition group-hover:scale-105">
+                {item.icon}
+              </div>
+            </div>
+
+      
+            <div className="px-3 pb-5 pt-4 text-center">
+              <h3 className="text-sm font-semibold text-gray-800 
+                             group-hover:text-[#66A3A3]">
+                {item.title}
+              </h3>
+            </div>
+
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+</section> */}
+
+      
+      {/* <section className="py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-3xl font-extrabold text-black mb-16">
             Our Top Picks
@@ -150,7 +306,7 @@ async function PageHome() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
     {/* --- SECTION 3: PROMO SPLIT --- */}
       <section className="py-10 px-6">
@@ -197,88 +353,67 @@ async function PageHome() {
         </div>
       </section>
 
-      {/* --- SECTION 4: DYNAMIC BIRTHDAY CARDS --- */}
-      <section className="flex justify-center items-center py-20 bg-stone-50">
-        <div className='flex flex-col justify-start items-center w-full max-w-[1428px] px-4'>
-          <div className="w-full flex justify-between items-end mb-8">
-             <h2 className="text-4xl font-black text-black">Cards For Birthday</h2>
-             <Link href="/category/birthday" className="text-[#66A3A3] font-bold hover:underline">View All</Link>
-          </div>
 
-          <div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 w-full'>
-            {birthdayProducts.length > 0 ? (
-              birthdayProducts.map((product) => {
-                const frontSlide = product.design_data?.slides?.front;
-                const thumbnailProps = {
-                    id: product.id, sku: product.sku, title: product.title,
-                    thumbnail_url: frontSlide?.background_url || product.thumbnail_url || "/placeholder.png",
-                    canvas_settings: product.canvas_settings,
-                    preview_zones: frontSlide?.dynamic_zones || [] 
-                };
-                const isFixed = product.type === 'fixed';
-
-                return (
-                  <Link 
-                    href={`/product/${product.sku}`} 
-                    key={product.id} 
-                    className="group bg-white rounded-2xl p-3 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#9DCDCD] flex flex-col"
-                  >
-                    <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-3">
-                       <div className="w-full h-full group-hover:scale-105 transition-transform duration-500">
-                          <DynamicThumbnail product={thumbnailProps} />
-                       </div>
-                       <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 pointer-events-none">
-                          <span className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-lg ${isFixed ? "bg-zinc-800 text-white" : "bg-white text-black"}`}>
-                            {isFixed ? "View Details" : "Personalize"}
-                          </span>
-                       </div>
-                    </div>
-                    <div className="text-center mt-auto">
-                       <h3 className="font-bold text-base text-gray-800 line-clamp-1">{product.title}</h3>
-                       <p className="text-sm text-gray-500 mt-1 font-medium">From £{product.price}</p>
-                    </div>
-                  </Link>
-                );
-              })
-            ) : (
-              <div className="col-span-full text-center py-10 text-gray-400">
-                 Loading Products...
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* --- SECTION 4: DYNAMIC BIRTHDAY CARDS (Replaced with new component) --- */}
+      <BirthdaySection initialProducts={initialBirthdayProducts} />
 
       {/* --- SECTION 5: MILESTONES (Working Slider) --- */}
       <section className='flex flex-col justify-center items-center py-20'>
-        <div className='max-w-[1428px] w-full px-4 pt-5 text-center mb-10'>
+        <div className='max-w-[1428px] w-full px-4 pt-5 text-start mb-10'>
             <h2 className="text-4xl font-black text-black mb-4">From Birthday to Milestones</h2>
-            <p className='text-xl text-gray-600 max-w-3xl mx-auto'>Celebrate life’s special moments with cards for every occasion.</p>
+            <p className='text-xl text-gray-600 max-w-3xl'>Celebrate life’s special moments with cards for every occasion.</p>
         </div>
         <BirthdayToMilestoneSlider products={sliderProducts} />
       </section>
 
       {/* --- SECTION 6: BOTTOM PROMO --- */}
-      <section className="flex justify-center items-center py-14 px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 bg-[#FFAFB5] p-10 lg:px-28 lg:py-12 overflow-hidden rounded-3xl w-full max-w-[1428px]">
-          <div className="flex flex-col justify-center items-start gap-y-6 relative z-10">
-            <h2 className="text-4xl lg:text-6xl font-bold text-black leading-tight">
-              Birthday Fun, <br/> Made Just for Them
-            </h2>
-            <p className="text-xl lg:text-2xl font-medium text-black/80 max-w-lg">
-              Big birthdays, bigger smiles, discover cards kids can’t wait to open.
-            </p>
-            <div className="flex gap-4 mt-4">
-               <Image src="/home/birdthdaytomilestone/16.png" alt="Card" width={120} height={160} className="rotate-[-10deg] shadow-md border-4 border-white rounded-lg" />
-               <Image src="/home/birdthdaytomilestone/13.png" alt="Card" width={120} height={160} className="shadow-md border-4 border-white rounded-lg -mt-4" />
-               <Image src="/home/birdthdaytomilestone/18.png" alt="Card" width={120} height={160} className="rotate-[10deg] shadow-md border-4 border-white rounded-lg" />
-            </div>
-          </div>
-          <div className="flex justify-end items-end mt-10 lg:mt-0 relative">
-               <Image src="/home/last.png" alt="Happy Kid" width={600} height={500} className="object-contain" />
-          </div>
-        </div>
-      </section>
+    <section className="flex justify-center items-center py-14">
+  <div className="grid grid-cols-2 bg-[#FFAFB5] pt-10 px-28 py-12 overflow-hidden rounded-2xl">
+    <div className="flex flex-col justify-start items-start gap-y-4">
+      <h2 className="text-6xl font-bold text-black w-[600px]">
+        Birthday Fun, Made Just for Them
+      </h2>
+      <p className="text-xl w-[500px]">
+        Big birthdays, bigger smiles, discover cards kids can’t wait to open.
+      </p>
+
+  <div className="flex justify-center items-center px-5">
+        <Image
+          src="/home/birdthdaytomilestone/16.png"
+          alt="Rotated left"
+          width={200}
+          height={280}
+          className="z-10 rotate-[-10deg] shadow-md shadow-black/40"
+        />
+        <Image
+          src="/home/birdthdaytomilestone/13.png"
+          alt="Birthday Cake"
+          width={200}
+          height={280}
+          className="z-20 shadow-md shadow-black/40"
+        />
+        <Image
+          src="/home/birdthdaytomilestone/18.png"
+          alt="Birthday Cake"
+          width={200}
+          height={280}
+          className="z-30 rotate-[-10deg] shadow-md shadow-black/40"
+        />
+      </div>
+    
+    </div>
+
+    <div className='flex justify-end items-end'>
+         <Image
+          src="/home/last.png"
+          alt="Birthday Cake"
+          width={600}
+          height={500}
+          className=""
+        />
+    </div>
+  </div>
+</section>
 
     </div>
   )

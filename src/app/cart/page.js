@@ -50,7 +50,7 @@ const CartPage = () => {
 
       {/* Cart Grid */}
       {cart.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-20">
           
           {/* LEFT: Products List */}
           <div className="col-span-2 space-y-8">
@@ -83,7 +83,7 @@ const CartPage = () => {
                   
                   {/* Personalization Details */}
                   {item.custom_data && (
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3 w-[600px]">
                         {item.custom_data.envelope && (
                             <div className="flex items-center gap-2 text-sm">
                                 <span className="font-bold text-gray-400 text-xs uppercase tracking-wider">Envelope:</span>
@@ -172,7 +172,7 @@ const CartPage = () => {
                     onClick={handleCheckout}
                     className="mt-4 w-full bg-[#66A3A3] hover:bg-[#588b8b] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-teal-700/10 transition-all transform active:scale-95 flex justify-center items-center gap-2"
                 >
-                    Secure Checkout 🔒
+                    Secure Checkout
                 </button>
                 
                 <p className="text-center text-xs text-gray-400 mt-4">

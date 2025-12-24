@@ -1,11 +1,28 @@
 
 "use client";
-
+import { useRouter } from "next/navigation"; // <--- 1. Import useRouter
 import Image from "next/image";
+import { useEffect, useState } from "react";
+
 import AccountSidebar from "@/components/AccountSidebar";
 import { ShieldCheck, Lock, CreditCard, Info } from "lucide-react";
 
 export default function PaymentMethods() {
+    // --- AUTH PROTECTION START ---
+    const router = useRouter();
+    const [isAuthorized, setIsAuthorized] = useState(false);
+  
+    useEffect(() => {
+      // Check directly in LocalStorage for speed
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
+  
+      if (!storedToken) {
+        router.replace("/auth/login"); // Redirect if no token
+      } else {
+        setIsAuthorized(true); // Allow access
+      }
+    }, [router]);
+    // --- AUTH PROTECTION END ---
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
 

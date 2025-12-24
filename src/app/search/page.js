@@ -10,9 +10,8 @@ async function getSearchResults(query) {
 
 
 
-
     const res = await fetch(`https://papillondashboard.devshop.site/api/products?search=${query}`, {
-      cache: "no-store",
+      cache: "no-store", 
     });
 
     if (!res.ok) return null;

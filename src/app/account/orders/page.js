@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // <--- 1. Import useRouter
 import { 
   Package, Calendar, Loader2, MapPin, CreditCard, Truck, ChevronLeft, ChevronRight 
 } from "lucide-react";
@@ -8,6 +9,22 @@ import AccountSidebar from "@/components/AccountSidebar";
 import { useAuth } from "@/context/AuthContext";
 
 export default function OrderHistory() {
+  // --- AUTH PROTECTION START ---
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Check directly in LocalStorage for speed
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
+
+    if (!storedToken) {
+      router.replace("/auth/login"); // Redirect if no token
+    } else {
+      setIsAuthorized(true); // Allow access
+    }
+  }, [router]);
+  // --- AUTH PROTECTION END ---
+
   const { token } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,16 +35,13 @@ export default function OrderHistory() {
 
   // Fetch Orders whenever currentPage changes
   useEffect(() => {
+    // Only fetch if authorized and token exists
+    if (!isAuthorized || !token) return;
+
     async function fetchOrders() {
-      if (!token) return;
       setLoading(true);
 
       try {
-        // Pass page parameter to API
-
-
-
-
         const res = await fetch(`https://papillondashboard.devshop.site/api/orders?page=${currentPage}&per_page=5`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -37,7 +51,6 @@ export default function OrderHistory() {
 
         if (res.ok) {
           const data = await res.json();
-          // Laravel paginate() returns { data: [...], current_page: 1, last_page: 10, ... }
           setOrders(data.data); 
           setTotalPages(data.last_page);
           setCurrentPage(data.current_page);
@@ -50,7 +63,7 @@ export default function OrderHistory() {
     }
 
     fetchOrders();
-  }, [token, currentPage]); // dependency on currentPage triggers refetch
+  }, [token, currentPage, isAuthorized]); 
 
   // --- PAGE CHANGE HANDLER ---
   const changePage = (newPage) => {
@@ -70,6 +83,16 @@ export default function OrderHistory() {
     }
   };
 
+  // --- 3. SHOW SPINNER IF CHECKING AUTH ---
+  if (!isAuthorized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-stone-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#66A3A3]"></div>
+      </div>
+    );
+  }
+
+  // --- MAIN CONTENT ---
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
       <AccountSidebar active="orders" />
@@ -89,7 +112,7 @@ export default function OrderHistory() {
                 <Package size={40} />
             </div>
             <h3 className="text-xl font-bold text-gray-700">No orders yet</h3>
-          <p className="text-gray-500 mt-2">Looks like you haven&apos;t bought anything yet.</p>
+            <p className="text-gray-500 mt-2">Looks like you haven&apos;t bought anything yet.</p>
           </div>
         ) : (
           <>
@@ -97,7 +120,7 @@ export default function OrderHistory() {
               {orders.map((order) => (
                 <div key={order.id} className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
                   
-                  {/* --- 1. ORDER HEADER --- */}
+                  {/* ORDER HEADER */}
                   <div className="bg-gray-50 p-6 flex flex-col md:flex-row justify-between gap-4 border-b border-gray-200">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
@@ -119,7 +142,7 @@ export default function OrderHistory() {
                     </div>
                   </div>
 
-                  {/* --- 2. DETAILS GRID --- */}
+                  {/* DETAILS GRID */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 text-sm text-gray-600 border-b border-gray-100">
                       <div className="flex gap-3">
                           <MapPin className="text-gray-400 mt-0.5 flex-shrink-0" size={18} />
@@ -147,11 +170,12 @@ export default function OrderHistory() {
                       </div>
                   </div>
 
-                  {/* --- 3. ITEMS LIST --- */}
+                  {/* ITEMS LIST */}
                   <div className="p-6 space-y-6">
                     {order.items.map((item) => (
                       <div key={item.id} className="flex gap-4 items-center">
                         <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 relative group">
+                           {/* eslint-disable-next-line @next/next/no-img-element */}
                            <img 
                               src={item.product?.final_image_url || "/placeholder.png"} 
                               alt={item.product_title}
@@ -174,7 +198,7 @@ export default function OrderHistory() {
               ))}
             </div>
 
-            {/* --- 4. PAGINATION CONTROLS --- */}
+            {/* PAGINATION CONTROLS */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-10">
                 <button

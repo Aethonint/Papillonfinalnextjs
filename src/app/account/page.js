@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AccountSidebar from "@/components/AccountSidebar";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation"; // <--- 1. Import useRouter
 import { ShoppingBag, AlertTriangle, Truck, CheckCircle } from "lucide-react";
 
 export default function AccountPage() {
@@ -14,12 +15,26 @@ export default function AccountPage() {
     refund_requests: 0
   });
   const [loading, setLoading] = useState(true);
+  // --- AUTH PROTECTION START ---
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Check directly in LocalStorage for speed
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem("auth_token") : null;
+
+    if (!storedToken) {
+      router.replace("/auth/login"); // Redirect if no token
+    } else {
+      setIsAuthorized(true); // Allow access
+    }
+  }, [router]);
+  // --- AUTH PROTECTION END ---
 
   useEffect(() => {
     async function fetchStats() {
       if (!token) return;
       try {
-
 
         const res = await fetch("https://papillondashboard.devshop.site/api/profile/stats", {
           headers: {

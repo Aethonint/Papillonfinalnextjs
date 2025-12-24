@@ -29,7 +29,6 @@ export default function ProductDetailsPage() {
 
 
 
-
     fetch(`https://papillondashboard.devshop.site/api/product/${sku}`)
       .then((res) => {
         if (!res.ok) throw new Error("Product not found");
@@ -222,13 +221,13 @@ export default function ProductDetailsPage() {
                     onClick={() => router.push(`/editor/${product.sku}`)}
                     className="w-full py-5 px-6 bg-[#66A3A3] hover:bg-[#558b8b] text-white font-bold text-lg rounded-2xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center gap-3"
                   >
-                    <span>✏️</span> Personalize This Card
+                    <span></span> Personalize This Card
                   </button>
                 )}
 
                 <div className="flex items-center justify-center gap-6 pt-6 text-xs text-zinc-400">
-                   <span>🚚 Fast Delivery</span>
-                   <span>🔒 Secure Payment</span>
+                   <span> Fast Delivery</span>
+                   <span> Secure Payment</span>
                 </div>
             </div>
 
