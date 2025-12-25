@@ -7,62 +7,73 @@ import CheckoutForm from "@/components/CheckoutForm";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 
-// Initialize Stripe (Check if key exists to prevent crash)
+// Initialize Stripe
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export default function CheckoutPage() {
-  const { cart, total, shippingAddress } = useCart(); // Get Real Address
+  const { cart, total, shippingAddress } = useCart(); 
   const [clientSecret, setClientSecret] = useState("");
   const [error, setError] = useState(""); 
   const router = useRouter();
   
-  // --- LOCK: Prevents infinite API calls ---
+  // Lock to prevent double-fetching
   const hasFetched = useRef(false);
 
+  // Reset lock if Total changes (e.g. user modified cart)
   useEffect(() => {
-    // 1. Validation Checks
+    hasFetched.current = false;
+    setClientSecret("");
+  }, [total]);
+
+  useEffect(() => {
+    // 1. Validation
     if (cart.length === 0) return;
     if (total <= 0) {
         setError("Cart total cannot be 0.");
         return;
     }
     
-    // Redirect if they skipped the Delivery Page
+    // Redirect if missing address
     if (!shippingAddress) {
-        router.push('/delivery');
+        router.push('/checkout/delivery');
         return;
     }
 
-    // --- STOP IF ALREADY FETCHED ---
+    // 2. Prevent Duplicate Calls
     if (hasFetched.current || clientSecret) return;
 
-    const token = localStorage.getItem('auth_token');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     if (!token) {
         setError("You are not logged in. Please login first.");
         return;
     }
 
-    // Lock to prevent duplicate requests
+    // Lock it
     hasFetched.current = true;
     setError(""); 
 
-    // 2. Fetch Payment Intent
-
-
-
-    fetch("https://papillondashboard.devshop.site/api/create-payment-intent", {
+    // 3. Create Payment Intent
+    // ✅ URL kept as Localhost per your request
+    fetch("http://localhost:8000/api/create-payment-intent", {
       method: "POST",
       headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}` 
       },
-      body: JSON.stringify({ amount: total }),
+      body: JSON.stringify({ 
+          amount: total,
+          // Optional: Send metadata if needed
+          metadata: { 
+              customer_name: shippingAddress.name,
+              customer_email: shippingAddress.email 
+          }
+      }),
     })
       .then(async (res) => {
         if (!res.ok) {
             const text = await res.text();
-            hasFetched.current = false;
+            hasFetched.current = false; // Unlock on error to allow retry
             throw new Error(`Server Error: ${res.status} - ${text}`);
         }
         return res.json();
@@ -78,17 +89,19 @@ export default function CheckoutPage() {
       })
       .catch((err) => {
           console.error("Stripe Fetch Error:", err);
-          setError(err.message); 
+          setError(err.message || "Payment system is currently unavailable.");
           hasFetched.current = false;
       });
-  }, [total, cart.length, clientSecret, shippingAddress]);
+      
+  // ✅ FIXED DEPENDENCIES: Removed 'shippingAddress' object to stop infinite loop
+  }, [total, cart.length, clientSecret, shippingAddress?.postcode]);
 
   // Handle empty cart
   if (cart.length === 0) {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50">
             <h2 className="text-xl font-bold mb-4 text-zinc-900">Your cart is empty</h2>
-            <button onClick={() => router.push('/')} className="text-blue-600 hover:underline">Return Home</button>
+            <button onClick={() => router.push('/')} className="text-[#66A3A3] font-bold hover:underline">Return Home</button>
         </div>
       );
   }
@@ -117,21 +130,42 @@ export default function CheckoutPage() {
              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6 text-sm text-gray-600">
                 <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-lg text-zinc-800">Shipping To</h3>
-                   <button onClick={() => router.push('/delivery')} className="text-[#66A3A3] font-bold hover:underline">Edit</button>
+                   
+                   {/* ✅ EDIT BUTTON LINK */}
+                   <button 
+                       type="button" 
+                       onClick={() => router.push('/checkout/delivery')} 
+                       className="text-[#66A3A3] font-bold hover:underline"
+                   >
+                       Edit
+                   </button>
                 </div>
+                
                 <p className="font-bold text-black">{shippingAddress.name}</p>
                 <p>{shippingAddress.line1}</p>
                 {shippingAddress.line2 && <p>{shippingAddress.line2}</p>}
-                <p>{shippingAddress.city}, {shippingAddress.postcode}</p>
+                
+                {/* ✅ ADDED: COUNTY / STATE DISPLAY */}
+                <p>
+                    {shippingAddress.city}
+                    {(shippingAddress.county || shippingAddress.state) ? `, ${shippingAddress.county || shippingAddress.state}` : ""}
+                </p>
+                
+                <p>{shippingAddress.postcode}</p>
                 <p>{shippingAddress.country}</p>
              </div>
            )}
            
            {/* Error Display */}
            {error && (
-               <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-sm font-bold shadow-sm">
-                   ⚠️ {error}
-                   <button onClick={() => window.location.reload()} className="block mt-2 text-xs underline hover:text-red-800">Try Refreshing</button>
+               <div className="bg-red-50 text-red-600 p-6 rounded-xl border border-red-200 text-sm font-bold shadow-sm flex flex-col gap-2">
+                   <p className="flex items-center gap-2">⚠️ {error}</p>
+                   <button 
+                    onClick={() => window.location.reload()} 
+                    className="self-start px-4 py-2 bg-white border border-red-200 rounded-lg shadow-sm hover:bg-gray-50 text-xs"
+                   >
+                    Try Refreshing Page
+                   </button>
                </div>
            )}
         </div>
@@ -142,7 +176,7 @@ export default function CheckoutPage() {
               <Elements options={options} stripe={stripePromise}>
                 <CheckoutForm 
                     totalAmount={total} 
-                    shippingDetails={shippingAddress} // Pass real address to form
+                    shippingDetails={shippingAddress} 
                 />
               </Elements>
             ) : (

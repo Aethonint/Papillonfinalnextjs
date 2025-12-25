@@ -16,7 +16,7 @@ async function getBirthdayCards() {
 
 
 
-    const res = await fetch('https://papillondashboard.devshop.site/api/products/category/birthday', {
+    const res = await fetch('http://localhost:8000/api/products/category/birthday', {
       next: { revalidate: 60 } 
     });
     if (!res.ok) return null;
@@ -32,7 +32,7 @@ async function getLatestProducts() {
 
 
 
-    const res = await fetch('https://papillondashboard.devshop.site/api/products', {
+    const res = await fetch('http://localhost:8000/api/products', {
       next: { revalidate: 60 } 
     });
     if (!res.ok) return null;

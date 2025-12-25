@@ -29,7 +29,7 @@
 //           // Build the new URL for the sub-category
 
 
-//           const newUrl = `https://papillondashboard.devshop.site/api/products/category/${subCatSlug}`;
+//           const newUrl = `http://localhost:8000/api/products/category/${subCatSlug}`;
 //           setCurrentEndpoint(newUrl);
 //           await reloadProducts(newUrl);
 //       }
@@ -206,7 +206,7 @@ export default function ProductGrid({ initialProducts, apiEndpoint, subCategorie
           await reloadProducts(apiEndpoint);
       } else {
           setActiveFilter(subCatSlug);
-          const newUrl = `https://papillondashboard.devshop.site/api/products/category/${subCatSlug}`;
+          const newUrl = `http://localhost:8000/api/products/category/${subCatSlug}`;
           setCurrentEndpoint(newUrl);
           await reloadProducts(newUrl);
       }

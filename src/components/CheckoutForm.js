@@ -80,7 +80,12 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
             line2: shippingDetails.line2,
             city: shippingDetails.city,
             postcode: shippingDetails.postcode,
-            country: 'United Kingdom'
+            country: 'United Kingdom',
+           // ✅ CRITICAL FIX: County is now at the Top Level (where Controller looks for it)
+        county: shippingDetails.county || shippingDetails.state || "N/A",
+
+
+ 
         },
 
         delivery_type: shippingDetails.delivery_type,
@@ -103,7 +108,7 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
 
 
 
-      const res = await fetch("https://papillondashboard.devshop.site/api/orders", {
+      const res = await fetch("http://localhost:8000/api/orders", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",

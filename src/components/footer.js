@@ -25,7 +25,7 @@ export default function Footer() {
 
 
 
-      const res = await fetch("https://papillondashboard.devshop.site/api/newsletter/subscribe", {
+      const res = await fetch("http://localhost:8000/api/newsletter/subscribe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,13 +81,13 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Popular Links */}
+       {/* ✅ UPDATED POPULAR LINKS */}
         <div className="flex flex-col space-y-3">
           <h3 className="text-[#66A3A3] text-lg font-bold uppercase">Popular</h3>
-          <Link href="#" className="hover:text-[#66A3A3] transition">Birthday Cards</Link>
-          <Link href="#" className="hover:text-[#66A3A3] transition">Kids Cards</Link>
-          <Link href="#" className="hover:text-[#66A3A3] transition">New Home Cards</Link>
-          <Link href="#" className="hover:text-[#66A3A3] transition">Thank You Cards</Link>
+          <Link href="/category/birthday" className="hover:text-[#66A3A3] transition">Birthday Cards</Link>
+          <Link href="/category/birthday-special-age" className="hover:text-[#66A3A3] transition">Kids Cards</Link>
+          <Link href="/category/congratulations-new-home" className="hover:text-[#66A3A3] transition">New Home Cards</Link>
+          <Link href="/category/gestural-cards-thank-you-cards" className="hover:text-[#66A3A3] transition">Thank You Cards</Link>
         </div>
 
         {/* Useful Links */}

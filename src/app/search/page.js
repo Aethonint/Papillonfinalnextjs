@@ -10,7 +10,7 @@ async function getSearchResults(query) {
 
 
 
-    const res = await fetch(`https://papillondashboard.devshop.site/api/products?search=${query}`, {
+    const res = await fetch(`http://localhost:8000/api/products?search=${query}`, {
       cache: "no-store", 
     });
 

@@ -148,9 +148,9 @@ export default function BirthdaySection({ initialProducts }) {
     setLoading(true);
 
     try {
-      let url = 'https://papillondashboard.devshop.site/api/products/category/birthday';
+      let url = 'http://localhost:8000/api/products/category/birthday';
       if (slug !== 'all') {
-        url = `https://papillondashboard.devshop.site/api/products/category/${slug}`;
+        url = `http://localhost:8000/api/products/category/${slug}`;
       }
       const res = await fetch(url);
       const data = await res.json();

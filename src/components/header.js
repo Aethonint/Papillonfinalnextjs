@@ -42,7 +42,7 @@ export default function Header() {
 
 
 
-        const res = await fetch("https://papillondashboard.devshop.site/api/header-menu");
+        const res = await fetch("http://localhost:8000/api/header-menu");
         if (!res.ok) throw new Error("Failed to fetch menu");
         const data = await res.json();
         setNavItems(data);
@@ -58,25 +58,26 @@ export default function Header() {
 
 const HEADER_PROMOS_BY_MENU = {
   birthday: [
-    { title: "Birthday Cards", button: "Shop Birthday", image: "/home/cards1.png" },
+    // Added 'link' property
+    { title: "Birthday Cards", button: "Shop Birthday", image: "/home/cards1.png", link: "/category/birthday" },
   ],
   anniversary: [
-    { title: "Anniversary Cards", button: "Shop Cards", image: "/home/cards2.png" },
+    { title: "Anniversary Cards", button: "Shop Cards", image: "/home/cards2.png", link: "/category/anniversary" },
   ],
   specialcelebration: [
-    { title: "Wedding Cards", button: "Shop Cards", image: "/home/cards3.png" },
+    { title: "Wedding Cards", button: "Shop Cards", image: "/home/cards3.png", link: "/category/special-celebrations" },
   ],
   occasional: [
-    { title: "Occasional Cards", button: "Shop Cards", image: "/home/cards5.png" },
+    { title: "Occasional Cards", button: "Shop Cards", image: "/home/cards5.png", link: "/category/occasional-cards" },
   ],
   gestural: [
-    { title: "Gestural Cards", button: "Shop Cards", image: "/home/cards4.png" },
+    { title: "Gestural Cards", button: "Shop Cards", image: "/home/cards4.png", link: "/category/gestural-cards" },
   ],
   congrats: [
-    { title: "Congratulations Cards", button: "Shop Cards", image: "/home/cards6.png" },
+    { title: "Congratulations Cards", button: "Shop Cards", image: "/home/cards6.png", link: "/category/congratulations" },
   ],
   gifts: [
-    { title: "Gifts", button: "Shop Gifts", image: "/home/cards7.png" },
+    { title: "Gifts", button: "Shop Gifts", image: "/home/cards7.png", link: "/category/gifts" },
   ],
 };
 
@@ -332,7 +333,8 @@ const MENU_TO_PROMO_KEY = {
     return (
       <div className="space-y-8">
         {promos.map((promo, i) => (
-          <Link key={i} href="#" className="group block">
+         // ✅ CHANGE THIS LINE: Use promo.link instead of "#"
+          <Link key={i} href={promo.link} className="group block">
             <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
               <Image
                 src={promo.image}
