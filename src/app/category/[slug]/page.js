@@ -86,7 +86,7 @@ import ProductGrid from "@/components/ProductGrid";
 
 async function getCategoryProducts(slug) {
   try {
-    const res = await fetch(`http://localhost:8000/api/products/category/${slug}`, {
+    const res = await fetch(`https://papillondashboard.devshop.site/api/products/category/${slug}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -170,7 +170,7 @@ export default async function CategoryPage({ params }) {
         <div className="relative">
           <ProductGrid 
             initialProducts={products} 
-            apiEndpoint={`http://localhost:8000/api/products/category/${slug}`}
+            apiEndpoint={`https://papillondashboard.devshop.site/api/products/category/${slug}`}
             subCategories={sub_categories || []} 
           />
         </div>

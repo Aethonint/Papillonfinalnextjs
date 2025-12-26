@@ -67,7 +67,7 @@ export default function DeliveryPage() {
     async function fetchAddresses() {
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:8000/api/addresses", {
+        const res = await fetch("https://papillondashboard.devshop.site/api/addresses", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -220,7 +220,7 @@ export default function DeliveryPage() {
                 <div className="p-3 bg-white rounded-full shadow-sm text-[#66A3A3]"><FaTruck size={20} /></div>
                 <div>
                   <h3 className="font-bold text-gray-900">Send it Directly to Them</h3>
-                  <p className="text-sm text-gray-500">We&apos;ll get it sorted and posted right to their door.</p>
+              <p className="text-sm text-gray-500">We&apos;ll get it sorted and posted right to their door.</p>
                 </div>
                 <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center ${mode === "direct" ? "border-[#66A3A3]" : "border-gray-300"}`}>
                   {mode === "direct" && <div className="w-2.5 h-2.5 bg-[#66A3A3] rounded-full"></div>}
@@ -366,8 +366,10 @@ export default function DeliveryPage() {
                 </div>
 
               </div>
-              
-              <p className="text-xs text-gray-500 mt-2">We only use this number if there's an issue with delivery.</p>
+          <p className="text-xs text-gray-500 mt-2">
+  We only use this number if there&apos;s an issue with delivery.
+</p>
+
 
             </form>
           </div>

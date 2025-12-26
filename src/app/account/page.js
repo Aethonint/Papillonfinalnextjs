@@ -36,7 +36,7 @@ export default function AccountPage() {
       if (!token) return;
       try {
 
-        const res = await fetch("http://localhost:8000/api/profile/stats", {
+        const res = await fetch("https://papillondashboard.devshop.site/api/profile/stats", {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",

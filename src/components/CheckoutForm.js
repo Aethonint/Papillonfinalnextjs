@@ -108,7 +108,7 @@ export default function CheckoutForm({ totalAmount, shippingDetails }) {
 
 
 
-      const res = await fetch("http://localhost:8000/api/orders", {
+      const res = await fetch("https://papillondashboard.devshop.site/api/orders", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",

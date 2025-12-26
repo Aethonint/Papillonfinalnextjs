@@ -31,7 +31,7 @@ function VerifyContent() {
 
 
 
-      const res = await fetch("http://localhost:8000/api/verify-otp", {
+      const res = await fetch("https://papillondashboard.devshop.site/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -61,7 +61,7 @@ function VerifyContent() {
 
 
 
-        const res = await fetch("http://localhost:8000/api/resend-otp", {
+        const res = await fetch("https://papillondashboard.devshop.site/api/resend-otp", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify({ email }),

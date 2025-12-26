@@ -55,7 +55,7 @@ export default function CheckoutPage() {
 
     // 3. Create Payment Intent
     // ✅ URL kept as Localhost per your request
-    fetch("http://localhost:8000/api/create-payment-intent", {
+    fetch("https://papillondashboard.devshop.site/api/create-payment-intent", {
       method: "POST",
       headers: { 
           "Content-Type": "application/json",

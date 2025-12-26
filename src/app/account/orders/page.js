@@ -42,7 +42,7 @@ export default function OrderHistory() {
       setLoading(true);
 
       try {
-        const res = await fetch(`http://localhost:8000/api/orders?page=${currentPage}&per_page=5`, {
+        const res = await fetch(`https://papillondashboard.devshop.site/api/orders?page=${currentPage}&per_page=5`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
